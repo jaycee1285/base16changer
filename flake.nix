@@ -20,7 +20,7 @@
             pname = "base16changer";
             version = "0.1.0";
             src = ./.;
-            vendorHash = "sha256-rvJRU+asDpk/qxCbGGps2JZtAptlMAymphSu9SEzFmI=";
+            vendorHash = "sha256-X7tnknsKwkYmWMHZUyQgEE/Ez/boQdfIEvwLcg0JmUI=";
 
             meta = {
               description = "Base16 theme switcher with hot-reload for labwc, kitty, fuzzel, GTK";
