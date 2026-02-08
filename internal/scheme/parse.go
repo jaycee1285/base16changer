@@ -37,7 +37,7 @@ type Colors struct {
 	Base0F string `yaml:"base0F"` // Brown
 }
 
-// Parse reads a base16 YAML scheme file
+// Parse reads a base16 or Gogh YAML scheme file (auto-detects format)
 func Parse(path string) (*Base16, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -51,6 +51,15 @@ func Parse(path string) (*Base16, error) {
 
 	// Normalize colors (remove # prefix if present, lowercase)
 	scheme.Palette.normalize()
+
+	// Auto-detect Gogh format: missing base09 (orange) or base0F (brown).
+	// Backup heuristic: Gogh uses .yml, Base16 uses .yaml (not enforced here).
+	if scheme.Palette.Base09 == "" || scheme.Palette.Base0F == "" {
+		gogh, err := parseGogh(path)
+		if err == nil && gogh.Color01 != "" {
+			return gogh.ToBase16(), nil
+		}
+	}
 
 	return &scheme, nil
 }

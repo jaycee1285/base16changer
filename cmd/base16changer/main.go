@@ -94,7 +94,17 @@ func runCLI(cfg *targets.Config, schemeName, schemePath string) {
 	if schemePath != "" {
 		schemeFile = schemePath
 	} else if cfg.SchemesDir != "" {
-		schemeFile = filepath.Join(cfg.SchemesDir, schemeName+".yaml")
+		// Try both extensions
+		for _, ext := range []string{".yaml", ".yml"} {
+			path := filepath.Join(cfg.SchemesDir, schemeName+ext)
+			if _, err := os.Stat(path); err == nil {
+				schemeFile = path
+				break
+			}
+		}
+		if schemeFile == "" {
+			schemeFile = filepath.Join(cfg.SchemesDir, schemeName+".yaml") // fallback for error msg
+		}
 	} else {
 		// Search standard locations
 		schemeFile, err = targets.FindScheme(schemeName)
@@ -146,6 +156,8 @@ func listSchemesFromDir(dir string) {
 		name := e.Name()
 		if strings.HasSuffix(name, ".yaml") {
 			schemes = append(schemes, strings.TrimSuffix(name, ".yaml"))
+		} else if strings.HasSuffix(name, ".yml") {
+			schemes = append(schemes, strings.TrimSuffix(name, ".yml"))
 		}
 	}
 

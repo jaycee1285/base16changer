@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -264,7 +265,17 @@ func applyCmd(cfg *targets.Config, sel Selections) tea.Cmd {
 		var schemePath string
 		var err error
 		if cfg.SchemesDir != "" {
-			schemePath = cfg.SchemesDir + "/" + sel.Scheme + ".yaml"
+			// Try both extensions
+			for _, ext := range []string{".yaml", ".yml"} {
+				path := cfg.SchemesDir + "/" + sel.Scheme + ext
+				if _, statErr := os.Stat(path); statErr == nil {
+					schemePath = path
+					break
+				}
+			}
+			if schemePath == "" {
+				schemePath = cfg.SchemesDir + "/" + sel.Scheme + ".yaml" // fallback
+			}
 		} else {
 			schemePath, err = targets.FindScheme(sel.Scheme)
 			if err != nil {

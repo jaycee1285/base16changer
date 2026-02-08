@@ -32,6 +32,8 @@ func ScanSchemesDir(dir string) ([]string, error) {
 		name := e.Name()
 		if strings.HasSuffix(name, ".yaml") {
 			schemes = append(schemes, strings.TrimSuffix(name, ".yaml"))
+		} else if strings.HasSuffix(name, ".yml") {
+			schemes = append(schemes, strings.TrimSuffix(name, ".yml"))
 		}
 	}
 	sort.Strings(schemes)
@@ -53,6 +55,8 @@ func ScanAllSchemes() []string {
 			name := e.Name()
 			if strings.HasSuffix(name, ".yaml") {
 				set[strings.TrimSuffix(name, ".yaml")] = struct{}{}
+			} else if strings.HasSuffix(name, ".yml") {
+				set[strings.TrimSuffix(name, ".yml")] = struct{}{}
 			}
 		}
 	}
@@ -68,9 +72,11 @@ func ScanAllSchemes() []string {
 // FindScheme searches SchemesDirs for a scheme and returns its full path
 func FindScheme(name string) (string, error) {
 	for _, dir := range SchemesDirs() {
-		path := filepath.Join(dir, name+".yaml")
-		if _, err := os.Stat(path); err == nil {
-			return path, nil
+		for _, ext := range []string{".yaml", ".yml"} {
+			path := filepath.Join(dir, name+ext)
+			if _, err := os.Stat(path); err == nil {
+				return path, nil
+			}
 		}
 	}
 	return "", fmt.Errorf("scheme not found: %s", name)

@@ -16,38 +16,18 @@
 - [x] CLI mode with flags
 - [x] TUI mode (Bubble Tea) with expandable panels
 - [x] Hot reload for all targets (kitty, labwc, gtk via dconf toggle)
+- [x] Gogh theme auto-conversion
+  - Auto-detects Gogh format (missing base09/base0F)
+  - Maps ANSI colors to base16 slots
+  - Derives orange (base09) and brown (base0F) via Lab-space blending
+  - Supports both .yaml and .yml extensions
+  - Drop Gogh themes in ~/.local/share/themes/ alongside base16 schemes
 
 ## In Progress
 
 None
 
 ## Planned
-
-### v1.1: Gogh Theme Converter
-
-- [ ] `gogh2base16` converter tool
-  - Parse Gogh YAML format (color_01-16, background, foreground, cursor)
-  - Map direct matches:
-    - base00 ← background
-    - base03 ← color_09 (bright black)
-    - base05 ← foreground
-    - base07 ← color_16 (bright white)
-    - base08 ← color_02 (red)
-    - base0A ← color_04 (yellow)
-    - base0B ← color_03 (green)
-    - base0C ← color_07 (cyan)
-    - base0D ← color_05 (blue)
-    - base0E ← color_06 (magenta)
-  - Derive missing shades:
-    - base01 ← interpolate(bg, fg, 0.1)
-    - base02 ← interpolate(bg, fg, 0.2)
-    - base04 ← interpolate(bg, fg, 0.4)
-    - base06 ← interpolate(bg, fg, 0.8)
-  - Derive missing accents:
-    - base09 (orange) ← blend(red, yellow) or use yellow
-    - base0F (brown) ← darken(orange) or use red
-  - Output base16 YAML to ~/.local/share/themes/
-  - Batch convert all Gogh themes
 
 ### v2: Waybar Integration
 
