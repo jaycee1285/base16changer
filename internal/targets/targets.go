@@ -20,8 +20,11 @@ type Config struct {
 	// Target config paths
 	KittyThemeConf string // ~/.config/kitty/current-theme.conf
 	FuzzelIni      string // ~/.config/fuzzel/fuzzel.ini
-	Gtk3CSS        string // ~/.config/gtk-3.0/gtk.css
-	Gtk4CSS        string // ~/.config/gtk-4.0/gtk.css
+	Gtk2RC         string // ~/.themes/Base16/gtk-2.0/gtkrc
+	Gtk3CSS        string // ~/.themes/Base16/gtk-3.0/gtk.css
+	Gtk4CSS        string // ~/.config/gtk-4.0/gtk.css (libadwaita)
+	Gtk4ThemeCSS   string // ~/.themes/Base16/gtk-4.0/gtk.css
+	IndexTheme     string // ~/.themes/Base16/index.theme
 	OpenboxThemerc string // ~/.themes/Base16/openbox-3/themerc
 	LabwcRcXml     string // ~/.config/labwc/rc.xml
 
@@ -50,8 +53,11 @@ func DefaultConfig() *Config {
 		// ScanSchemesDirs() returns the actual search paths
 		KittyThemeConf: filepath.Join(home, ".config/kitty/current-theme.conf"),
 		FuzzelIni:      filepath.Join(home, ".config/fuzzel/fuzzel.ini"),
-		Gtk3CSS:        filepath.Join(home, ".config/gtk-3.0/gtk.css"),
-		Gtk4CSS:          filepath.Join(home, ".config/gtk-4.0/gtk.css"),
+		Gtk2RC:         filepath.Join(home, ".themes/Base16/gtk-2.0/gtkrc"),
+		Gtk3CSS:        filepath.Join(home, ".themes/Base16/gtk-3.0/gtk.css"),
+		Gtk4CSS:        filepath.Join(home, ".config/gtk-4.0/gtk.css"),
+		Gtk4ThemeCSS:   filepath.Join(home, ".themes/Base16/gtk-4.0/gtk.css"),
+		IndexTheme:     filepath.Join(home, ".themes/Base16/index.theme"),
 		OpenboxThemerc:   filepath.Join(home, ".themes/Base16/openbox-3/themerc"),
 		LabwcRcXml:       filepath.Join(home, ".config/labwc/rc.xml"),
 		OpenboxThemeName: "Base16",
@@ -86,11 +92,38 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 		fmt.Println("  [OK] gtk-4")
 	}
 
-	// 4. GTK-3
+	// 4. GTK-2
+	if err := applyGtk2(cfg, s); err != nil {
+		fmt.Printf("  [WARN] gtk-2: %v\n", err)
+	} else {
+		fmt.Println("  [OK] gtk-2")
+	}
+
+	// 5. GTK-3 (theme directory)
 	if err := applyGtk3(cfg, s); err != nil {
 		fmt.Printf("  [WARN] gtk-3: %v\n", err)
 	} else {
 		fmt.Println("  [OK] gtk-3")
+	}
+	// Clean up old user CSS that would override theme colors
+	cleanupOldGtkCSS(cfg)
+
+	// 4b. Theme index.theme
+	if err := applyIndexTheme(cfg); err != nil {
+		fmt.Printf("  [WARN] index.theme: %v\n", err)
+	} else {
+		fmt.Println("  [OK] index.theme")
+	}
+
+	// 4c. GTK settings.ini (set theme name)
+	home, _ := os.UserHomeDir()
+	for _, iniPath := range []string{
+		filepath.Join(home, ".config/gtk-3.0/settings.ini"),
+		filepath.Join(home, ".config/gtk-4.0/settings.ini"),
+	} {
+		if err := updateGtkSettingsIni(cfg, iniPath); err != nil {
+			fmt.Printf("  [WARN] %s: %v\n", iniPath, err)
+		}
 	}
 
 	// 5. LabWC/Openbox themerc
@@ -218,6 +251,11 @@ func applyGtk4(cfg *Config, s *scheme.Base16) error {
 	if err != nil {
 		return err
 	}
+	// Write to theme directory for plain GTK-4 apps
+	if err := writeFile(cfg, cfg.Gtk4ThemeCSS, content); err != nil {
+		return err
+	}
+	// Write to user CSS for libadwaita apps (they ignore theme directories)
 	return writeFile(cfg, cfg.Gtk4CSS, content)
 }
 
@@ -227,6 +265,60 @@ func applyGtk3(cfg *Config, s *scheme.Base16) error {
 		return err
 	}
 	return writeFile(cfg, cfg.Gtk3CSS, content)
+}
+
+func applyGtk2(cfg *Config, s *scheme.Base16) error {
+	content, err := template.RenderString(gtk2Template, s.ToMap())
+	if err != nil {
+		return err
+	}
+	return writeFile(cfg, cfg.Gtk2RC, content)
+}
+
+func cleanupOldGtkCSS(cfg *Config) {
+	home, _ := os.UserHomeDir()
+	old := filepath.Join(home, ".config/gtk-3.0/gtk.css")
+	if _, err := os.Stat(old); err == nil {
+		if cfg.DryRun {
+			fmt.Printf("  Would remove old user CSS: %s\n", old)
+			return
+		}
+		if err := os.Remove(old); err != nil {
+			fmt.Printf("  [WARN] remove old gtk-3 css: %v\n", err)
+		}
+	}
+}
+
+func applyIndexTheme(cfg *Config) error {
+	return writeFile(cfg, cfg.IndexTheme, indexThemeTemplate)
+}
+
+func updateGtkSettingsIni(cfg *Config, path string) error {
+	if cfg.DryRun {
+		fmt.Printf("  Would update gtk-theme-name in: %s\n", path)
+		return nil
+	}
+
+	existing, err := os.ReadFile(path)
+	if err != nil {
+		// File doesn't exist, skip (managed by NixOS/home-manager)
+		return nil
+	}
+
+	lines := strings.Split(string(existing), "\n")
+	found := false
+	for i, line := range lines {
+		if strings.HasPrefix(line, "gtk-theme-name=") {
+			lines[i] = "gtk-theme-name=" + cfg.GtkThemeName
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil
+	}
+
+	return os.WriteFile(path, []byte(strings.Join(lines, "\n")), 0644)
 }
 
 func applyOpenbox(cfg *Config, s *scheme.Base16) error {

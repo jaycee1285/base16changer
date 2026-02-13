@@ -136,10 +136,11 @@ const gtk4Template = `/* Base16 {{scheme-name}} */
 @define-color brown_1 #{{base0F-hex}};
 `
 
-// GTK-3 template (simpler, uses FlatColor-style injection)
+// GTK-3 template — base16 colors + FlatColor widget styling
 const gtk3Template = `/* Base16 {{scheme-name}} */
 /* Scheme author: {{scheme-author}} */
 
+/* Base16 color scheme */
 @define-color bg_color #{{base00-hex}};
 @define-color fg_color #{{base05-hex}};
 @define-color base_color #{{base01-hex}};
@@ -156,6 +157,104 @@ const gtk3Template = `/* Base16 {{scheme-name}} */
 @define-color theme_text_color @text_color;
 @define-color theme_selected_bg_color @selected_bg_color;
 @define-color theme_selected_fg_color @selected_fg_color;
+@define-color theme_tooltip_bg_color @tooltip_bg_color;
+@define-color theme_tooltip_fg_color @tooltip_fg_color;
+
+@define-color shadow alpha(@theme_fg_color, 0.1);
+@define-color info_fg_color @fg_color;
+@define-color info_bg_color @base_color;
+@define-color warning_fg_color @fg_color;
+@define-color warning_bg_color @base_color;
+@define-color question_fg_color @fg_color;
+@define-color question_bg_color @base_color;
+@define-color error_fg_color @fg_color;
+@define-color error_bg_color @base_color;
+@define-color link_color #{{base0D-hex}};
+@define-color success_color #{{base0B-hex}};
+@define-color warning_color #{{base0A-hex}};
+@define-color error_color #{{base08-hex}};
+
+@define-color border_color #{{base02-hex}};
+@define-color button_normal_color @base_color;
+@define-color button_default_active_color shade(@theme_selected_bg_color, 0.857);
+@define-color entry_border_color shade(@theme_base_color, 0.9);
+@define-color sel_color @selected_bg_color;
+@define-color switch_bg_color @base_color;
+@define-color panel_bg_color @bg_color;
+@define-color panel_fg_color @fg_color;
+@define-color borders @border_color;
+@define-color scrollbar_trough shade(@theme_base_color, 0.9);
+@define-color scrollbar_slider_prelight mix(@scrollbar_trough, @theme_fg_color, 0.5);
+
+@define-color osd_separator #{{base02-hex}};
+@define-color osd_fg @fg_color;
+@define-color osd_bg @bg_color;
+
+@define-color wm_bg @theme_bg_color;
+@define-color wm_title_focused @theme_fg_color;
+@define-color wm_title_unfocused @theme_text_color;
+@define-color wm_border_focused @border_color;
+@define-color wm_border_unfocused @border_color;
+
+/* FlatColor widget styling */
+@import url("../../FlatColor/gtk-3.0/gtk-widgets.css");
+@import url("../../FlatColor/gtk-3.0/gtk-widgets-assets.css");
+@import url("../../FlatColor/gtk-3.0/widgets/button.css");
+@import url("../../FlatColor/gtk-3.0/widgets/cell-row.css");
+@import url("../../FlatColor/gtk-3.0/widgets/check-radio.css");
+@import url("../../FlatColor/gtk-3.0/widgets/column-header.css");
+@import url("../../FlatColor/gtk-3.0/widgets/calendar.css");
+@import url("../../FlatColor/gtk-3.0/widgets/entry.css");
+@import url("../../FlatColor/gtk-3.0/widgets/infobar.css");
+@import url("../../FlatColor/gtk-3.0/widgets/menu.css");
+@import url("../../FlatColor/gtk-3.0/widgets/notebook.css");
+@import url("../../FlatColor/gtk-3.0/widgets/progress-scale.css");
+@import url("../../FlatColor/gtk-3.0/widgets/scrollbar.css");
+@import url("../../FlatColor/gtk-3.0/widgets/separator.css");
+@import url("../../FlatColor/gtk-3.0/widgets/sidebar.css");
+@import url("../../FlatColor/gtk-3.0/widgets/spinbutton.css");
+@import url("../../FlatColor/gtk-3.0/widgets/spinner.css");
+@import url("../../FlatColor/gtk-3.0/widgets/switch.css");
+@import url("../../FlatColor/gtk-3.0/widgets/color-chooser.css");
+@import url("../../FlatColor/gtk-3.0/widgets/toolbar.css");
+@import url("../../FlatColor/gtk-3.0/widgets/header-bar.css");
+@import url("../../FlatColor/gtk-3.0/widgets/osd.css");
+@import url("../../FlatColor/gtk-3.0/widgets/csd.css");
+@import url("../../FlatColor/gtk-3.0/widgets/combobox.css");
+@import url("../../FlatColor/gtk-3.0/widgets/selection-mode.css");
+`
+
+// GTK-2 template — base16 color scheme + FlatColor widget styling
+const gtk2Template = `# Base16 {{scheme-name}}
+# Scheme author: {{scheme-author}}
+
+gtk-color-scheme = "bg_color:#{{base00-hex}}
+color0:#{{base00-hex}}
+text_color:#{{base05-hex}}
+selected_bg_color:#{{base02-hex}}
+selected_fg_color:#{{base05-hex}}
+tooltip_bg_color:#{{base00-hex}}
+tooltip_fg_color:#{{base05-hex}}
+titlebar_bg_color:#{{base01-hex}}
+titlebar_fg_color:#{{base05-hex}}
+menu_bg_color:#{{base01-hex}}
+menu_fg_color:#{{base05-hex}}
+link_color:#{{base0D-hex}}"
+
+include "../../FlatColor/gtk-2.0/gtkrc"
+`
+
+// index.theme for ~/.themes/Base16/
+const indexThemeTemplate = `[Desktop Entry]
+Type=X-GNOME-Metatheme
+Name=Base16
+Comment=Base16 color scheme
+Encoding=UTF-8
+
+[X-GNOME-Metatheme]
+GtkTheme=Base16
+MetacityTheme=Base16
+IconTheme=Adwaita
 `
 
 // Openbox themerc for labwc
