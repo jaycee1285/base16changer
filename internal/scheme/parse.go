@@ -3,6 +3,7 @@ package scheme
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -129,9 +130,17 @@ func (c *Colors) Hex(name string) string {
 	}
 }
 
+// hexToDec converts a 6-char hex color string to decimal R, G, B strings
+func hexToDec(hex string) (string, string, string) {
+	r, _ := strconv.ParseUint(hex[0:2], 16, 8)
+	g, _ := strconv.ParseUint(hex[2:4], 16, 8)
+	b, _ := strconv.ParseUint(hex[4:6], 16, 8)
+	return strconv.FormatUint(r, 10), strconv.FormatUint(g, 10), strconv.FormatUint(b, 10)
+}
+
 // ToMap returns colors as a map for template rendering
 func (s *Base16) ToMap() map[string]string {
-	return map[string]string{
+	m := map[string]string{
 		"scheme-name":   s.Name,
 		"scheme-author": s.Author,
 		"scheme-slug":   slugify(s.Name),
@@ -152,6 +161,29 @@ func (s *Base16) ToMap() map[string]string {
 		"base0E-hex":    s.Palette.Base0E,
 		"base0F-hex":    s.Palette.Base0F,
 	}
+
+	// Add decimal R, G, B values for each base color
+	bases := []struct {
+		name string
+		hex  string
+	}{
+		{"base00", s.Palette.Base00}, {"base01", s.Palette.Base01},
+		{"base02", s.Palette.Base02}, {"base03", s.Palette.Base03},
+		{"base04", s.Palette.Base04}, {"base05", s.Palette.Base05},
+		{"base06", s.Palette.Base06}, {"base07", s.Palette.Base07},
+		{"base08", s.Palette.Base08}, {"base09", s.Palette.Base09},
+		{"base0A", s.Palette.Base0A}, {"base0B", s.Palette.Base0B},
+		{"base0C", s.Palette.Base0C}, {"base0D", s.Palette.Base0D},
+		{"base0E", s.Palette.Base0E}, {"base0F", s.Palette.Base0F},
+	}
+	for _, b := range bases {
+		r, g, bl := hexToDec(b.hex)
+		m[b.name+"-dec-r"] = r
+		m[b.name+"-dec-g"] = g
+		m[b.name+"-dec-b"] = bl
+	}
+
+	return m
 }
 
 func slugify(name string) string {
