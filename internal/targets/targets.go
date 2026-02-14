@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/jaycee1285/base16changer/internal/scheme"
 	"github.com/jaycee1285/base16changer/internal/template"
@@ -43,6 +44,12 @@ type Config struct {
 
 	// Dry run mode - print what would be done
 	DryRun bool
+
+	// Quiet mode - suppress stdout logging (useful for TUI)
+	Quiet bool
+
+	// Ferritebar config to touch after apply
+	FerritebarConfig string
 }
 
 // DefaultConfig returns config with standard paths
@@ -51,68 +58,70 @@ func DefaultConfig() *Config {
 	return &Config{
 		// SchemesDir is used for CLI --schemes-dir override only
 		// ScanSchemesDirs() returns the actual search paths
-		KittyThemeConf: filepath.Join(home, ".config/kitty/current-theme.conf"),
-		FuzzelIni:      filepath.Join(home, ".config/fuzzel/fuzzel.ini"),
-		Gtk2RC:         filepath.Join(home, ".themes/Base16/gtk-2.0/gtkrc"),
-		Gtk3CSS:        filepath.Join(home, ".themes/Base16/gtk-3.0/gtk.css"),
-		Gtk4CSS:        filepath.Join(home, ".config/gtk-4.0/gtk.css"),
-		Gtk4ThemeCSS:   filepath.Join(home, ".themes/Base16/gtk-4.0/gtk.css"),
-		IndexTheme:     filepath.Join(home, ".themes/Base16/index.theme"),
+		KittyThemeConf:   filepath.Join(home, ".config/kitty/current-theme.conf"),
+		FuzzelIni:        filepath.Join(home, ".config/fuzzel/fuzzel.ini"),
+		Gtk2RC:           filepath.Join(home, ".themes/Base16/gtk-2.0/gtkrc"),
+		Gtk3CSS:          filepath.Join(home, ".themes/Base16/gtk-3.0/gtk.css"),
+		Gtk4CSS:          filepath.Join(home, ".config/gtk-4.0/gtk.css"),
+		Gtk4ThemeCSS:     filepath.Join(home, ".themes/Base16/gtk-4.0/gtk.css"),
+		IndexTheme:       filepath.Join(home, ".themes/Base16/index.theme"),
 		OpenboxThemerc:   filepath.Join(home, ".themes/Base16/openbox-3/themerc"),
 		LabwcRcXml:       filepath.Join(home, ".config/labwc/rc.xml"),
 		OpenboxThemeName: "Base16",
 		GtkThemeName:     "Base16",
 		WallpaperDir:     filepath.Join(home, "Pictures/walls"),
 		DryRun:           false,
+		Quiet:            false,
+		FerritebarConfig: filepath.Join(home, ".config/ferritebar/config.toml"),
 	}
 }
 
 // Apply applies a base16 scheme to all targets
 func Apply(cfg *Config, s *scheme.Base16) error {
-	fmt.Printf("Applying scheme: %s\n", s.Name)
+	logf(cfg, "Applying scheme: %s\n", s.Name)
 
 	// 1. Kitty
 	if err := applyKitty(cfg, s); err != nil {
-		fmt.Printf("  [WARN] kitty: %v\n", err)
+		logf(cfg, "  [WARN] kitty: %v\n", err)
 	} else {
-		fmt.Println("  [OK] kitty")
+		logln(cfg, "  [OK] kitty")
 	}
 
 	// 2. Fuzzel
 	if err := applyFuzzel(cfg, s); err != nil {
-		fmt.Printf("  [WARN] fuzzel: %v\n", err)
+		logf(cfg, "  [WARN] fuzzel: %v\n", err)
 	} else {
-		fmt.Println("  [OK] fuzzel")
+		logln(cfg, "  [OK] fuzzel")
 	}
 
 	// 3. GTK-4
 	if err := applyGtk4(cfg, s); err != nil {
-		fmt.Printf("  [WARN] gtk-4: %v\n", err)
+		logf(cfg, "  [WARN] gtk-4: %v\n", err)
 	} else {
-		fmt.Println("  [OK] gtk-4")
+		logln(cfg, "  [OK] gtk-4")
 	}
 
 	// 4. GTK-2
 	if err := applyGtk2(cfg, s); err != nil {
-		fmt.Printf("  [WARN] gtk-2: %v\n", err)
+		logf(cfg, "  [WARN] gtk-2: %v\n", err)
 	} else {
-		fmt.Println("  [OK] gtk-2")
+		logln(cfg, "  [OK] gtk-2")
 	}
 
 	// 5. GTK-3 (theme directory)
 	if err := applyGtk3(cfg, s); err != nil {
-		fmt.Printf("  [WARN] gtk-3: %v\n", err)
+		logf(cfg, "  [WARN] gtk-3: %v\n", err)
 	} else {
-		fmt.Println("  [OK] gtk-3")
+		logln(cfg, "  [OK] gtk-3")
 	}
 	// Clean up old user CSS that would override theme colors
 	cleanupOldGtkCSS(cfg)
 
 	// 4b. Theme index.theme
 	if err := applyIndexTheme(cfg); err != nil {
-		fmt.Printf("  [WARN] index.theme: %v\n", err)
+		logf(cfg, "  [WARN] index.theme: %v\n", err)
 	} else {
-		fmt.Println("  [OK] index.theme")
+		logln(cfg, "  [OK] index.theme")
 	}
 
 	// 4c. GTK settings.ini (set theme name)
@@ -122,45 +131,52 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 		filepath.Join(home, ".config/gtk-4.0/settings.ini"),
 	} {
 		if err := updateGtkSettingsIni(cfg, iniPath); err != nil {
-			fmt.Printf("  [WARN] %s: %v\n", iniPath, err)
+			logf(cfg, "  [WARN] %s: %v\n", iniPath, err)
 		}
 	}
 
 	// 5. LabWC/Openbox themerc
 	if err := applyOpenbox(cfg, s); err != nil {
-		fmt.Printf("  [WARN] openbox: %v\n", err)
+		logf(cfg, "  [WARN] openbox: %v\n", err)
 	} else {
-		fmt.Println("  [OK] openbox")
+		logln(cfg, "  [OK] openbox")
 	}
 
 	// 6. LabWC rc.xml (set theme name and icon theme)
 	if err := updateLabwcRcXml(cfg); err != nil {
-		fmt.Printf("  [WARN] labwc rc.xml: %v\n", err)
+		logf(cfg, "  [WARN] labwc rc.xml: %v\n", err)
 	} else {
-		fmt.Println("  [OK] labwc rc.xml")
+		logln(cfg, "  [OK] labwc rc.xml")
 	}
 
 	// 7. Icon theme (if specified)
 	if cfg.IconTheme != "" {
 		if err := applyIconTheme(cfg); err != nil {
-			fmt.Printf("  [WARN] icon theme: %v\n", err)
+			logf(cfg, "  [WARN] icon theme: %v\n", err)
 		} else {
-			fmt.Println("  [OK] icon theme")
+			logln(cfg, "  [OK] icon theme")
 		}
 	}
 
 	// 8. Wallpaper (if specified)
 	if cfg.Wallpaper != "" {
 		if err := applyWallpaper(cfg); err != nil {
-			fmt.Printf("  [WARN] wallpaper: %v\n", err)
+			logf(cfg, "  [WARN] wallpaper: %v\n", err)
 		} else {
-			fmt.Println("  [OK] wallpaper")
+			logln(cfg, "  [OK] wallpaper")
 		}
 	}
 
 	// 9. Trigger reloads
-	fmt.Println("\nTriggering reloads...")
+	logln(cfg, "\nTriggering reloads...")
 	triggerReloads(cfg)
+
+	// 10. Touch ferritebar config (final step)
+	if err := touchFerritebarConfig(cfg); err != nil {
+		logf(cfg, "  [WARN] ferritebar config: %v\n", err)
+	} else {
+		logln(cfg, "  [OK] ferritebar config")
+	}
 
 	return nil
 }
@@ -180,7 +196,7 @@ func applyFuzzel(cfg *Config, s *scheme.Base16) error {
 	}
 
 	if cfg.DryRun {
-		fmt.Printf("  Would update [colors] in: %s\n", cfg.FuzzelIni)
+		logf(cfg, "  Would update [colors] in: %s\n", cfg.FuzzelIni)
 		return nil
 	}
 
@@ -280,11 +296,11 @@ func cleanupOldGtkCSS(cfg *Config) {
 	old := filepath.Join(home, ".config/gtk-3.0/gtk.css")
 	if _, err := os.Stat(old); err == nil {
 		if cfg.DryRun {
-			fmt.Printf("  Would remove old user CSS: %s\n", old)
+			logf(cfg, "  Would remove old user CSS: %s\n", old)
 			return
 		}
 		if err := os.Remove(old); err != nil {
-			fmt.Printf("  [WARN] remove old gtk-3 css: %v\n", err)
+			logf(cfg, "  [WARN] remove old gtk-3 css: %v\n", err)
 		}
 	}
 }
@@ -295,7 +311,7 @@ func applyIndexTheme(cfg *Config) error {
 
 func updateGtkSettingsIni(cfg *Config, path string) error {
 	if cfg.DryRun {
-		fmt.Printf("  Would update gtk-theme-name in: %s\n", path)
+		logf(cfg, "  Would update gtk-theme-name in: %s\n", path)
 		return nil
 	}
 
@@ -339,7 +355,7 @@ func applyOpenbox(cfg *Config, s *scheme.Base16) error {
 
 func updateLabwcRcXml(cfg *Config) error {
 	if cfg.DryRun {
-		fmt.Printf("  Would update theme name in: %s\n", cfg.LabwcRcXml)
+		logf(cfg, "  Would update theme name in: %s\n", cfg.LabwcRcXml)
 		return nil
 	}
 
@@ -363,7 +379,7 @@ func updateLabwcRcXml(cfg *Config) error {
 
 func applyIconTheme(cfg *Config) error {
 	if cfg.DryRun {
-		fmt.Printf("  Would set icon theme: %s\n", cfg.IconTheme)
+		logf(cfg, "  Would set icon theme: %s\n", cfg.IconTheme)
 		return nil
 	}
 
@@ -377,7 +393,7 @@ func applyIconTheme(cfg *Config) error {
 
 func applyWallpaper(cfg *Config) error {
 	if cfg.DryRun {
-		fmt.Printf("  Would set wallpaper: %s\n", cfg.Wallpaper)
+		logf(cfg, "  Would set wallpaper: %s\n", cfg.Wallpaper)
 		return nil
 	}
 
@@ -391,7 +407,7 @@ func applyWallpaper(cfg *Config) error {
 
 func writeFile(cfg *Config, path, content string) error {
 	if cfg.DryRun {
-		fmt.Printf("  Would write to: %s\n", path)
+		logf(cfg, "  Would write to: %s\n", path)
 		return nil
 	}
 
@@ -405,33 +421,74 @@ func writeFile(cfg *Config, path, content string) error {
 
 func triggerReloads(cfg *Config) {
 	if cfg.DryRun {
-		fmt.Println("  Would run: pkill -SIGUSR1 kitty")
-		fmt.Println("  Would run: labwc -r")
-		fmt.Println("  Would run: dconf toggle gtk-theme")
+		logln(cfg, "  Would run: pkill -SIGUSR1 kitty")
+		logln(cfg, "  Would run: labwc -r")
+		logln(cfg, "  Would run: dconf toggle gtk-theme")
 		return
 	}
 
 	// Kitty - SIGUSR1 tells kitty to reload its config
 	if err := run("pkill", "-SIGUSR1", "kitty"); err != nil {
-		fmt.Printf("  [WARN] kitty reload: %v\n", err)
+		logf(cfg, "  [WARN] kitty reload: %v\n", err)
 	} else {
-		fmt.Println("  [OK] kitty reload")
+		logln(cfg, "  [OK] kitty reload")
 	}
 
 	// LabWC
 	if err := run("labwc", "-r"); err != nil {
-		fmt.Printf("  [WARN] labwc reconfigure: %v\n", err)
+		logf(cfg, "  [WARN] labwc reconfigure: %v\n", err)
 	} else {
-		fmt.Println("  [OK] labwc reconfigure")
+		logln(cfg, "  [OK] labwc reconfigure")
 	}
 
 	// GTK reload via dconf toggle
 	_ = run("dconf", "write", "/org/gnome/desktop/interface/gtk-theme", "'dummy'")
 	if err := run("dconf", "write", "/org/gnome/desktop/interface/gtk-theme", fmt.Sprintf("'%s'", cfg.GtkThemeName)); err != nil {
-		fmt.Printf("  [WARN] gtk reload: %v\n", err)
+		logf(cfg, "  [WARN] gtk reload: %v\n", err)
 	} else {
-		fmt.Println("  [OK] gtk reload")
+		logln(cfg, "  [OK] gtk reload")
 	}
+}
+
+func touchFerritebarConfig(cfg *Config) error {
+	if cfg.DryRun {
+		logf(cfg, "  Would touch: %s\n", cfg.FerritebarConfig)
+		return nil
+	}
+
+	dir := filepath.Dir(cfg.FerritebarConfig)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("mkdir %s: %w", dir, err)
+	}
+
+	f, err := os.OpenFile(cfg.FerritebarConfig, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return fmt.Errorf("touch ferritebar config: %w", err)
+	}
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("close ferritebar config: %w", err)
+	}
+
+	now := time.Now()
+	if err := os.Chtimes(cfg.FerritebarConfig, now, now); err != nil {
+		return fmt.Errorf("chtimes ferritebar config: %w", err)
+	}
+
+	return nil
+}
+
+func logf(cfg *Config, format string, args ...any) {
+	if cfg != nil && cfg.Quiet {
+		return
+	}
+	fmt.Printf(format, args...)
+}
+
+func logln(cfg *Config, args ...any) {
+	if cfg != nil && cfg.Quiet {
+		return
+	}
+	fmt.Println(args...)
 }
 
 func run(name string, args ...string) error {
