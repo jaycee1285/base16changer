@@ -63,11 +63,11 @@ const fuzzelTemplate = `# Base16 {{scheme-name}}
 [colors]
 background={{base01-hex}}f2
 text={{base05-hex}}ff
-match={{base0D-hex}}ff
+match={{accent-hex}}ff
 selection={{base03-hex}}ff
 selection-text={{base05-hex}}ff
-selection-match={{base0D-hex}}ff
-border={{base0D-hex}}ff
+selection-match={{accent-hex}}ff
+border={{accent-hex}}ff
 `
 
 // waybarTemplate intentionally empty for v1
@@ -77,8 +77,8 @@ const waybarTemplate = ``
 const gtk4Template = `/* Base16 {{scheme-name}} */
 /* Scheme author: {{scheme-author}} */
 
-@define-color accent_color #{{base0D-hex}};
-@define-color accent_bg_color #{{base0D-hex}};
+@define-color accent_color #{{accent-hex}};
+@define-color accent_bg_color #{{accent-hex}};
 @define-color accent_fg_color #{{base00-hex}};
 
 @define-color destructive_color #{{base08-hex}};
@@ -319,7 +319,7 @@ menu.overlap.x: 0
 menu.overlap.y: 0
 
 # Border colors
-window.active.border.color: #{{base0D-hex}}
+window.active.border.color: #{{accent-hex}}
 window.inactive.border.color: #{{base02-hex}}
 menu.border.color: #{{base02-hex}}
 

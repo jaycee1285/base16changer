@@ -15,6 +15,7 @@ type Base16 struct {
 	Name    string `yaml:"name"`
 	Author  string `yaml:"author"`
 	Variant string `yaml:"variant"` // "light" or "dark"
+	Accent  string `yaml:"accent"`  // optional override hex (without #), falls back to base0D
 	Palette Colors `yaml:"palette"`
 }
 
@@ -52,13 +53,16 @@ func Parse(path string) (*Base16, error) {
 
 	// Normalize colors (remove # prefix if present, lowercase)
 	scheme.Palette.normalize()
+	scheme.Accent = normalizeColor(scheme.Accent)
 
 	// Auto-detect Gogh format: missing base09 (orange) or base0F (brown).
 	// Backup heuristic: Gogh uses .yml, Base16 uses .yaml (not enforced here).
 	if scheme.Palette.Base09 == "" || scheme.Palette.Base0F == "" {
 		gogh, err := parseGogh(path)
 		if err == nil && gogh.Color01 != "" {
-			return gogh.ToBase16(), nil
+			b16 := gogh.ToBase16()
+			b16.Accent = scheme.Accent
+			return b16, nil
 		}
 	}
 
@@ -182,6 +186,17 @@ func (s *Base16) ToMap() map[string]string {
 		m[b.name+"-dec-g"] = g
 		m[b.name+"-dec-b"] = bl
 	}
+
+	// Accent color: use explicit accent if set, otherwise fall back to base0D
+	accent := s.Palette.Base0D
+	if s.Accent != "" {
+		accent = s.Accent
+	}
+	m["accent-hex"] = accent
+	ar, ag, ab := hexToDec(accent)
+	m["accent-dec-r"] = ar
+	m["accent-dec-g"] = ag
+	m["accent-dec-b"] = ab
 
 	return m
 }
