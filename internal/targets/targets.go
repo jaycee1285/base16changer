@@ -434,11 +434,16 @@ func triggerReloads(cfg *Config) {
 		logln(cfg, "  [OK] kitty reload")
 	}
 
-	// LabWC
-	if err := run("labwc", "-r"); err != nil {
-		logf(cfg, "  [WARN] labwc reconfigure: %v\n", err)
-	} else {
-		logln(cfg, "  [OK] labwc reconfigure")
+	// LabWC / SartWC
+	for _, compositor := range []string{"labwc", "sartwc"} {
+		if err := run("pgrep", compositor); err == nil {
+			if err := run(compositor, "-r"); err != nil {
+				logf(cfg, "  [WARN] %s reconfigure: %v\n", compositor, err)
+			} else {
+				logf(cfg, "  [OK] %s reconfigure\n", compositor)
+			}
+			break
+		}
 	}
 
 	// GTK reload via dconf toggle
