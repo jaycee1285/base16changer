@@ -156,6 +156,11 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 		} else {
 			logln(cfg, "  [OK] icon theme")
 		}
+		if err := recolorIconTheme(cfg, s); err != nil {
+			logf(cfg, "  [WARN] icon recolor: %v\n", err)
+		} else {
+			logln(cfg, "  [OK] icon recolor")
+		}
 	}
 
 	// 8. Wallpaper (if specified)

@@ -82,7 +82,6 @@ func FindScheme(name string) (string, error) {
 	return "", fmt.Errorf("scheme not found: %s", name)
 }
 
-
 // dirEntryIsDir returns true for real directories AND symlinks that point to directories.
 // NixOS commonly exposes themes/icons under /run/current-system/sw as symlink entries.
 func dirEntryIsDir(parent string, e os.DirEntry) bool {
@@ -149,6 +148,17 @@ func ScanIconThemes() []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// FindIconThemeDir returns the full path for an installed icon theme.
+func FindIconThemeDir(name string) (string, error) {
+	for _, dir := range IconDirs() {
+		path := filepath.Join(dir, name)
+		if exists(filepath.Join(path, "index.theme")) {
+			return path, nil
+		}
+	}
+	return "", fmt.Errorf("icon theme not found: %s", name)
 }
 
 // ScanWallpapers returns available wallpapers
