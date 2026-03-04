@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -17,10 +18,13 @@ import (
 type Config struct {
 	// Scheme directories
 	SchemesDir string // Path to base16 schemes (YAML files)
+	SelectedScheme string
 
 	// Target config paths
 	KittyThemeConf string // ~/.config/kitty/current-theme.conf
 	FuzzelIni      string // ~/.config/fuzzel/fuzzel.ini
+	SyntectThemeDir string // ~/.local/share/themes/tmThemes
+	SyntectCurrent  string // ~/.config/syntect/current.tmTheme
 	Gtk2RC         string // ~/.themes/Base16/gtk-2.0/gtkrc
 	Gtk3CSS        string // ~/.themes/Base16/gtk-3.0/gtk.css
 	Gtk4CSS        string // ~/.config/gtk-4.0/gtk.css (libadwaita)
@@ -60,6 +64,8 @@ func DefaultConfig() *Config {
 		// ScanSchemesDirs() returns the actual search paths
 		KittyThemeConf:   filepath.Join(home, ".config/kitty/current-theme.conf"),
 		FuzzelIni:        filepath.Join(home, ".config/fuzzel/fuzzel.ini"),
+		SyntectThemeDir:  filepath.Join(home, ".local/share/themes/tmThemes"),
+		SyntectCurrent:   filepath.Join(home, ".config/syntect/current.tmTheme"),
 		Gtk2RC:           filepath.Join(home, ".themes/Base16/gtk-2.0/gtkrc"),
 		Gtk3CSS:          filepath.Join(home, ".themes/Base16/gtk-3.0/gtk.css"),
 		Gtk4CSS:          filepath.Join(home, ".config/gtk-4.0/gtk.css"),
@@ -92,6 +98,13 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 		logf(cfg, "  [WARN] fuzzel: %v\n", err)
 	} else {
 		logln(cfg, "  [OK] fuzzel")
+	}
+
+	// 2b. Syntect current tmTheme
+	if err := applySyntectCurrentTheme(cfg, s); err != nil {
+		logf(cfg, "  [WARN] syntect: %v\n", err)
+	} else {
+		logln(cfg, "  [OK] syntect")
 	}
 
 	// 3. GTK-4
@@ -215,6 +228,103 @@ func applyFuzzel(cfg *Config, s *scheme.Base16) error {
 	// Replace or append [colors] section
 	newContent := replaceIniSection(string(existing), "colors", colorsSection)
 	return writeFileForce(cfg.FuzzelIni, newContent)
+}
+
+func applySyntectCurrentTheme(cfg *Config, s *scheme.Base16) error {
+	src, err := findSyntectThemeSource(cfg, s)
+	if err != nil {
+		return err
+	}
+	if cfg.DryRun {
+		logf(cfg, "  Would copy %s -> %s\n", src, cfg.SyntectCurrent)
+		return nil
+	}
+
+	content, err := os.ReadFile(src)
+	if err != nil {
+		return fmt.Errorf("read tmTheme %s: %w", src, err)
+	}
+
+	dir := filepath.Dir(cfg.SyntectCurrent)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("mkdir %s: %w", dir, err)
+	}
+
+	if err := os.WriteFile(cfg.SyntectCurrent, content, 0644); err != nil {
+		return fmt.Errorf("write current tmTheme %s: %w", cfg.SyntectCurrent, err)
+	}
+
+	return nil
+}
+
+func findSyntectThemeSource(cfg *Config, s *scheme.Base16) (string, error) {
+	themeDirs := syntectThemeDirs(cfg)
+	candidates := syntectThemeCandidates(cfg, s)
+
+	for _, dir := range themeDirs {
+		for _, candidate := range candidates {
+			path := filepath.Join(dir, candidate+".tmTheme")
+			if _, err := os.Stat(path); err == nil {
+				return path, nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf(
+		"tmTheme not found for scheme %q (tried names: %s in dirs: %s)",
+		cfg.SelectedScheme,
+		strings.Join(candidates, ", "),
+		strings.Join(themeDirs, ", "),
+	)
+}
+
+func syntectThemeDirs(cfg *Config) []string {
+	dirs := []string{cfg.SyntectThemeDir}
+	if strings.Contains(cfg.SyntectThemeDir, "tmThemes") {
+		dirs = append(dirs, strings.Replace(cfg.SyntectThemeDir, "tmThemes", "tmthemes", 1))
+	}
+	if strings.Contains(cfg.SyntectThemeDir, "tmthemes") {
+		dirs = append(dirs, strings.Replace(cfg.SyntectThemeDir, "tmthemes", "tmThemes", 1))
+	}
+	return dedupeStrings(dirs)
+}
+
+func syntectThemeCandidates(cfg *Config, s *scheme.Base16) []string {
+	var raw []string
+
+	add := func(name string) {
+		name = strings.TrimSpace(name)
+		if name == "" {
+			return
+		}
+		raw = append(raw, name)
+		raw = append(raw, strings.ReplaceAll(name, " ", "-"))
+		raw = append(raw, strings.ReplaceAll(name, "-", " "))
+		raw = append(raw, strings.ReplaceAll(name, " ", "_"))
+		raw = append(raw, strings.ReplaceAll(name, "_", " "))
+		raw = append(raw, strings.ToLower(name))
+	}
+
+	add(cfg.SelectedScheme)
+	if s != nil {
+		add(s.Name)
+	}
+
+	return dedupeStrings(raw)
+}
+
+func dedupeStrings(items []string) []string {
+	set := make(map[string]struct{}, len(items))
+	out := make([]string, 0, len(items))
+	for _, item := range items {
+		if _, exists := set[item]; exists {
+			continue
+		}
+		set[item] = struct{}{}
+		out = append(out, item)
+	}
+	sort.Strings(out)
+	return out
 }
 
 // replaceIniSection replaces a [section] in INI content, or appends if not found

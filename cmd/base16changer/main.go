@@ -89,6 +89,8 @@ func runTUI(cfg *targets.Config) {
 }
 
 func runCLI(cfg *targets.Config, schemeName, schemePath string) {
+	cfg.SelectedScheme = schemeName
+
 	// Resolve scheme path
 	var schemeFile string
 	var err error

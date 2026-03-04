@@ -290,6 +290,7 @@ func applyCmd(cfg *targets.Config, sel Selections) tea.Cmd {
 		}
 
 		// Set optional selections
+		cfg.SelectedScheme = sel.Scheme
 		cfg.IconTheme = sel.IconTheme
 		cfg.Wallpaper = sel.Wallpaper
 
