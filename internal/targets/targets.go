@@ -52,6 +52,9 @@ type Config struct {
 	// Quiet mode - suppress stdout logging (useful for TUI)
 	Quiet bool
 
+	// Mako notification config
+	MakoConfig string
+
 	// Ferritebar config to touch after apply
 	FerritebarConfig string
 }
@@ -78,6 +81,7 @@ func DefaultConfig() *Config {
 		WallpaperDir:     filepath.Join(home, "Pictures/walls"),
 		DryRun:           false,
 		Quiet:            false,
+		MakoConfig:       filepath.Join(home, ".config/mako/config"),
 		FerritebarConfig: filepath.Join(home, ".config/ferritebar/config.toml"),
 	}
 }
@@ -162,7 +166,14 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 		logln(cfg, "  [OK] labwc rc.xml")
 	}
 
-	// 7. Icon theme (if specified)
+	// 7. Mako
+	if err := applyMako(cfg, s); err != nil {
+		logf(cfg, "  [WARN] mako: %v\n", err)
+	} else {
+		logln(cfg, "  [OK] mako")
+	}
+
+	// 8. Icon theme (if specified)
 	if cfg.IconTheme != "" {
 		if err := applyIconTheme(cfg); err != nil {
 			logf(cfg, "  [WARN] icon theme: %v\n", err)
@@ -420,6 +431,69 @@ func cleanupOldGtkCSS(cfg *Config) {
 	}
 }
 
+func applyMako(cfg *Config, s *scheme.Base16) error {
+	m := s.ToMap()
+	colors := map[string]string{
+		"background-color": "#" + m["accent-hex"] + "FF", // placeholder, overwritten below
+		"text-color":       "#" + m["accent-hex"] + "FF",
+		"border-color":     "#" + m["accent-hex"] + "FF",
+	}
+	// Render the template to get the actual values
+	rendered, err := template.RenderString(makoTemplate, m)
+	if err != nil {
+		return err
+	}
+	// Parse rendered template for the color values
+	for _, line := range strings.Split(rendered, "\n") {
+		if strings.HasPrefix(line, "#") || strings.TrimSpace(line) == "" {
+			continue
+		}
+		if idx := strings.Index(line, "="); idx > 0 {
+			key := strings.TrimSpace(line[:idx])
+			val := strings.TrimSpace(line[idx+1:])
+			if _, ok := colors[key]; ok {
+				colors[key] = val
+			}
+		}
+	}
+
+	if cfg.DryRun {
+		logf(cfg, "  Would update colors in: %s\n", cfg.MakoConfig)
+		return nil
+	}
+
+	existing, err := os.ReadFile(cfg.MakoConfig)
+	if err != nil {
+		// File doesn't exist, write the full rendered template
+		return writeFile(cfg, cfg.MakoConfig, rendered)
+	}
+
+	// Update existing keys or append missing ones
+	lines := strings.Split(string(existing), "\n")
+	found := make(map[string]bool)
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		if idx := strings.Index(trimmed, "="); idx > 0 {
+			key := strings.TrimSpace(trimmed[:idx])
+			if val, ok := colors[key]; ok {
+				lines[i] = key + "=" + val
+				found[key] = true
+			}
+		}
+	}
+	// Append any keys not already in the file
+	for key, val := range colors {
+		if !found[key] {
+			lines = append(lines, key+"="+val)
+		}
+	}
+
+	return os.WriteFile(cfg.MakoConfig, []byte(strings.Join(lines, "\n")), 0644)
+}
+
 func applyIndexTheme(cfg *Config) error {
 	return writeFile(cfg, cfg.IndexTheme, indexThemeTemplate)
 }
@@ -538,6 +612,7 @@ func triggerReloads(cfg *Config) {
 	if cfg.DryRun {
 		logln(cfg, "  Would run: pkill -SIGUSR1 kitty")
 		logln(cfg, "  Would run: labwc -r")
+		logln(cfg, "  Would run: makoctl reload")
 		logln(cfg, "  Would run: dconf toggle gtk-theme")
 		return
 	}
@@ -559,6 +634,13 @@ func triggerReloads(cfg *Config) {
 			}
 			break
 		}
+	}
+
+	// Mako
+	if err := run("makoctl", "reload"); err != nil {
+		logf(cfg, "  [WARN] mako reload: %v\n", err)
+	} else {
+		logln(cfg, "  [OK] mako reload")
 	}
 
 	// GTK reload via dconf toggle

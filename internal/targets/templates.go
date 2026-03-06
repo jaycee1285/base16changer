@@ -302,6 +302,15 @@ MetacityTheme=Base16
 IconTheme=Adwaita
 `
 
+// Mako notification daemon config
+const makoTemplate = `# Base16 {{scheme-name}}
+# Scheme author: {{scheme-author}}
+
+background-color=#{{base01-hex}}FF
+text-color=#{{base05-hex}}FF
+border-color=#{{accent-hex}}FF
+`
+
 // Openbox themerc for labwc
 const openboxTemplate = `# Base16 {{scheme-name}}
 # Scheme author: {{scheme-author}}
