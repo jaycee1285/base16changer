@@ -22,6 +22,13 @@
             src = ./.;
             vendorHash = "sha256-X7tnknsKwkYmWMHZUyQgEE/Ez/boQdfIEvwLcg0JmUI=";
 
+            nativeBuildInputs = [ pkgs.makeWrapper ];
+
+            postInstall = ''
+              wrapProgram $out/bin/base16changer \
+                --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.sassc ]}
+            '';
+
             meta = {
               description = "Base16 theme switcher with hot-reload for labwc, kitty, fuzzel, GTK";
               mainProgram = "base16changer";

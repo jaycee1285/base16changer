@@ -77,6 +77,7 @@ type applyDoneMsg struct{ err error }
 // Selections tracks what the user has chosen
 type Selections struct {
 	Scheme    string
+	DarkMode  bool
 	IconTheme string
 	Wallpaper string
 }
@@ -190,6 +191,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch k {
 		case "ctrl+c", "q":
 			return m, tea.Quit
+		case "d":
+			m.selected.DarkMode = !m.selected.DarkMode
+			if m.selected.DarkMode {
+				m.status = "Mode: Dark"
+			} else {
+				m.status = "Mode: Light"
+			}
+			return m, nil
 		case "a":
 			if m.applying || m.selected.Scheme == "" {
 				if m.selected.Scheme == "" {
@@ -291,6 +300,7 @@ func applyCmd(cfg *targets.Config, sel Selections) tea.Cmd {
 
 		// Set optional selections
 		cfg.SelectedScheme = sel.Scheme
+		cfg.DarkMode = sel.DarkMode
 		cfg.IconTheme = sel.IconTheme
 		cfg.Wallpaper = sel.Wallpaper
 
@@ -423,11 +433,17 @@ func (m Model) renderSelections() string {
 	var lines []string
 	lines = append(lines, dimStyle.Render("─── Current Selection ───"))
 
+	modeStr := "Light"
+	if m.selected.DarkMode {
+		modeStr = "Dark"
+	}
+
 	selections := []struct {
 		label string
 		value string
 	}{
 		{"Scheme", m.selected.Scheme},
+		{"Mode", modeStr},
 		{"Icons", m.selected.IconTheme},
 		{"Wallpaper", m.selected.Wallpaper},
 	}
@@ -497,6 +513,7 @@ func (m Model) renderHelp() string {
 		{"→ / Enter", "Expand panel"},
 		{"← / Esc", "Collapse panel"},
 		{"/", "Filter items"},
+		{"D", "Toggle light/dark"},
 		{"A", "Apply changes"},
 		{"Q", "Quit"},
 	}

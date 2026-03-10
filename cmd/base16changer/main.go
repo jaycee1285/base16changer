@@ -20,6 +20,7 @@ func main() {
 		schemesDir     string
 		iconTheme      string
 		wallpaper      string
+		darkMode       bool
 		listFlag       bool
 		listIcons      bool
 		listWallpapers bool
@@ -31,6 +32,7 @@ func main() {
 	flag.StringVar(&schemesDir, "schemes-dir", "", "Directory containing scheme YAML files")
 	flag.StringVar(&iconTheme, "icon", "", "Icon theme to apply")
 	flag.StringVar(&wallpaper, "wallpaper", "", "Wallpaper filename to apply (from ~/Pictures/walls)")
+	flag.BoolVar(&darkMode, "dark", false, "Use dark theme variant (Orchis-Dark-Compact)")
 	flag.BoolVar(&listFlag, "list", false, "List available schemes")
 	flag.BoolVar(&listIcons, "list-icons", false, "List available icon themes")
 	flag.BoolVar(&listWallpapers, "list-wallpapers", false, "List available wallpapers")
@@ -44,6 +46,7 @@ func main() {
 
 	cfg := targets.DefaultConfig()
 	cfg.DryRun = dryRun
+	cfg.DarkMode = darkMode
 	cfg.IconTheme = iconTheme
 	cfg.Wallpaper = wallpaper
 	if schemesDir != "" {

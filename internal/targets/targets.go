@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jaycee1285/base16changer/internal/orchis"
 	"github.com/jaycee1285/base16changer/internal/scheme"
 	"github.com/jaycee1285/base16changer/internal/template"
 )
@@ -57,6 +58,12 @@ type Config struct {
 
 	// Ferritebar config to touch after apply
 	FerritebarConfig string
+
+	// Orchis theme output directory (e.g. ~/.local/share/themes)
+	OrchisDestDir string
+
+	// DarkMode selects Orchis-Dark-Compact vs Orchis-Light-Compact
+	DarkMode bool
 }
 
 // DefaultConfig returns config with standard paths
@@ -83,6 +90,7 @@ func DefaultConfig() *Config {
 		Quiet:            false,
 		MakoConfig:       filepath.Join(home, ".config/mako/config"),
 		FerritebarConfig: filepath.Join(home, ".config/ferritebar/config.toml"),
+		OrchisDestDir:    filepath.Join(home, ".local/share/themes"),
 	}
 }
 
@@ -111,11 +119,19 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 		logln(cfg, "  [OK] syntect")
 	}
 
-	// 3. GTK-4
-	if err := applyGtk4(cfg, s); err != nil {
-		logf(cfg, "  [WARN] gtk-4: %v\n", err)
+	// 3. Orchis theme (GTK 3/4 compiled from SCSS)
+	var orchisVariant orchis.Variant
+	if cfg.DarkMode {
+		orchisVariant = orchis.Dark
 	} else {
-		logln(cfg, "  [OK] gtk-4")
+		orchisVariant = orchis.Light
+	}
+	cfg.GtkThemeName = orchis.ThemeName(orchisVariant)
+
+	if err := orchis.Build(s, orchisVariant, cfg.OrchisDestDir); err != nil {
+		logf(cfg, "  [WARN] orchis: %v\n", err)
+	} else {
+		logln(cfg, "  [OK] orchis ("+string(orchisVariant)+")")
 	}
 
 	// 4. GTK-2
@@ -125,12 +141,6 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 		logln(cfg, "  [OK] gtk-2")
 	}
 
-	// 5. GTK-3 (theme directory)
-	if err := applyGtk3(cfg, s); err != nil {
-		logf(cfg, "  [WARN] gtk-3: %v\n", err)
-	} else {
-		logln(cfg, "  [OK] gtk-3")
-	}
 	// Clean up old user CSS that would override theme colors
 	cleanupOldGtkCSS(cfg)
 
