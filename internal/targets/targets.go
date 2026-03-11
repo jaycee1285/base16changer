@@ -56,6 +56,9 @@ type Config struct {
 	// Mako notification config
 	MakoConfig string
 
+	// LibreWolf/Firefox colors.css
+	LibrewolfCSS string
+
 	// Ferritebar config to touch after apply
 	FerritebarConfig string
 
@@ -89,6 +92,7 @@ func DefaultConfig() *Config {
 		DryRun:           false,
 		Quiet:            false,
 		MakoConfig:       filepath.Join(home, ".config/mako/config"),
+		LibrewolfCSS:     filepath.Join(home, ".config/base16changer/librewolf/colors.css"),
 		FerritebarConfig: filepath.Join(home, ".config/ferritebar/config.toml"),
 		OrchisDestDir:    filepath.Join(home, ".local/share/themes"),
 	}
@@ -181,6 +185,13 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 		logf(cfg, "  [WARN] mako: %v\n", err)
 	} else {
 		logln(cfg, "  [OK] mako")
+	}
+
+	// 7b. LibreWolf/Firefox
+	if err := applyLibrewolf(cfg, s); err != nil {
+		logf(cfg, "  [WARN] librewolf: %v\n", err)
+	} else {
+		logln(cfg, "  [OK] librewolf")
 	}
 
 	// 8. Icon theme (if specified)
@@ -502,6 +513,14 @@ func applyMako(cfg *Config, s *scheme.Base16) error {
 	}
 
 	return os.WriteFile(cfg.MakoConfig, []byte(strings.Join(lines, "\n")), 0644)
+}
+
+func applyLibrewolf(cfg *Config, s *scheme.Base16) error {
+	content, err := template.RenderString(librewolfTemplate, s.ToMap())
+	if err != nil {
+		return err
+	}
+	return writeFile(cfg, cfg.LibrewolfCSS, content)
 }
 
 func applyIndexTheme(cfg *Config) error {
