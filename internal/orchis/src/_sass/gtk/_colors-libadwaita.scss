@@ -33,16 +33,16 @@ $brown_2: #b5835a;
 $brown_3: #986a44;
 $brown_4: #865e3c;
 $brown_5: #63452c;
-$light_1: #ffffff;
-$light_2: #f6f5f4;
-$light_3: #deddda;
-$light_4: #c0bfbc;
-$light_5: #9a9996;
-$dark_1: #77767b;
-$dark_2: #5e5c64;
-$dark_3: #3d3846;
-$dark_4: #241f31;
-$dark_5: #000000;
+$light_1: $base;
+$light_2: $base-alt;
+$light_3: $background;
+$light_4: $grey-300;
+$light_5: $grey-500;
+$dark_1: $grey-450;
+$dark_2: $grey-550;
+$dark_3: $grey-700;
+$dark_4: $grey-850;
+$dark_5: $grey-950;
 
 :root {
   --blue-1: $blue_1;

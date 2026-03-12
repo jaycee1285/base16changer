@@ -1884,11 +1884,11 @@ panelthemeselector {
     }
 
     &.follow {
-      background-image: linear-gradient(to bottom right, #ffffff 50%, #202020 50%);
+      background-image: linear-gradient(to bottom right, #{$base} 50%, #{$scrim} 50%);
     }
 
     &.light {
-      background-color: #ffffff;
+      background-color: $base;
     }
 
     &.dark {
@@ -1969,12 +1969,12 @@ themeswitcher {
     }
 
     &.system {
-      background: linear-gradient(-45deg, #1e1e1e 50%, white 50%);
+      background: linear-gradient(-45deg, #{$scrim} 50%, #{$base} 50%);
     }
 
     &.light {
       color: gtkalpha(black, .8);
-      background-color: white;
+      background-color: $base;
     }
 
     &.dark {

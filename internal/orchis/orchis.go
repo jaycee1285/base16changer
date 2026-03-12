@@ -211,29 +211,29 @@ $yellow-dark: #{{base0A-hex}};
 $orange-light: #{{base09-hex}};
 $orange-dark: #{{base09-hex}};
 
-// Grey scale — Orchis defaults
-$grey-050: #FAFAFA;
-$grey-100: #F2F2F2;
-$grey-150: #EEEEEE;
-$grey-200: #DDDDDD;
-$grey-250: #CCCCCC;
-$grey-300: #BFBFBF;
-$grey-350: #A0A0A0;
-$grey-400: #9E9E9E;
-$grey-450: #868686;
-$grey-500: #727272;
-$grey-550: #555555;
-$grey-600: #464646;
-$grey-650: #3C3C3C;
-$grey-700: #2C2C2C;
-$grey-750: #242424;
-$grey-800: #212121;
-$grey-850: #121212;
-$grey-900: #0F0F0F;
-$grey-950: #030303;
+// Grey scale — derived from the active Base16 neutral ramp
+$grey-050: #{{grey-050-hex}};
+$grey-100: #{{grey-100-hex}};
+$grey-150: #{{grey-150-hex}};
+$grey-200: #{{grey-200-hex}};
+$grey-250: #{{grey-250-hex}};
+$grey-300: #{{grey-300-hex}};
+$grey-350: #{{grey-350-hex}};
+$grey-400: #{{grey-400-hex}};
+$grey-450: #{{grey-450-hex}};
+$grey-500: #{{grey-500-hex}};
+$grey-550: #{{grey-550-hex}};
+$grey-600: #{{grey-600-hex}};
+$grey-650: #{{grey-650-hex}};
+$grey-700: #{{grey-700-hex}};
+$grey-750: #{{grey-750-hex}};
+$grey-800: #{{grey-800-hex}};
+$grey-850: #{{grey-850-hex}};
+$grey-900: #{{grey-900-hex}};
+$grey-950: #{{grey-950-hex}};
 
-// White
-$white: #FFFFFF;
+// White-like high surface — derived from the active scheme instead of hard white
+$white: #{{grey-050-hex}};
 
 // Black
 $black: #000000;

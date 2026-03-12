@@ -59,6 +59,14 @@ type Config struct {
 	// LibreWolf/Firefox colors.css
 	LibrewolfCSS string
 
+	// Firefox theme payload for Firefox Color/theme API consumers
+	FirefoxThemeJSON string
+
+	// Packaged Firefox/LibreWolf theme extension
+	FirefoxExtensionDir string
+	FirefoxExtensionXPI string
+	FirefoxExtensionID  string
+
 	// Sidebery sidebar tab extension CSS
 	SideberyCSS string
 
@@ -96,6 +104,10 @@ func DefaultConfig() *Config {
 		Quiet:            false,
 		MakoConfig:       filepath.Join(home, ".config/mako/config"),
 		LibrewolfCSS:     filepath.Join(home, ".config/base16changer/librewolf/colors.css"),
+		FirefoxThemeJSON: filepath.Join(home, ".config/base16changer/firefox/theme.json"),
+		FirefoxExtensionDir: filepath.Join(home, ".config/base16changer/firefox/extension"),
+		FirefoxExtensionXPI: filepath.Join(home, ".config/base16changer/firefox/base16changer-theme.xpi"),
+		FirefoxExtensionID:  "base16changer-theme@john",
 		SideberyCSS:      filepath.Join(home, ".config/base16changer/sidebery/styles.css"),
 		FerritebarConfig: filepath.Join(home, ".config/ferritebar/config.toml"),
 		OrchisDestDir:    filepath.Join(home, ".local/share/themes"),
@@ -198,7 +210,21 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 		logln(cfg, "  [OK] librewolf")
 	}
 
-	// 7c. Sidebery (sidebar tab extension)
+	// 7c. Firefox theme payload (preferred integration point for Sidebery)
+	if err := applyFirefoxTheme(cfg, s); err != nil {
+		logf(cfg, "  [WARN] firefox theme: %v\n", err)
+	} else {
+		logln(cfg, "  [OK] firefox theme")
+	}
+
+	// 7d. Packaged Firefox theme extension (.xpi)
+	if err := applyFirefoxThemeExtension(cfg, s); err != nil {
+		logf(cfg, "  [WARN] firefox theme xpi: %v\n", err)
+	} else {
+		logln(cfg, "  [OK] firefox theme xpi")
+	}
+
+	// 7e. Sidebery (sidebar tab extension CSS fallback)
 	if err := applySidebery(cfg, s); err != nil {
 		logf(cfg, "  [WARN] sidebery: %v\n", err)
 	} else {
@@ -534,6 +560,75 @@ func applyLibrewolf(cfg *Config, s *scheme.Base16) error {
 	return writeFile(cfg, cfg.LibrewolfCSS, content)
 }
 
+func applyFirefoxTheme(cfg *Config, s *scheme.Base16) error {
+	content, err := template.RenderString(firefoxThemeTemplate, s.ToMap())
+	if err != nil {
+		return err
+	}
+	return writeFile(cfg, cfg.FirefoxThemeJSON, content)
+}
+
+func applyFirefoxThemeExtension(cfg *Config, s *scheme.Base16) error {
+	data := s.ToMap()
+	data["extension-id"] = cfg.FirefoxExtensionID
+	data["extension-version"] = firefoxExtensionVersion()
+
+	manifest, err := template.RenderString(firefoxManifestTemplate, data)
+	if err != nil {
+		return err
+	}
+	background, err := template.RenderString(firefoxBackgroundTemplate, data)
+	if err != nil {
+		return err
+	}
+	themeJSON, err := template.RenderString(firefoxThemeTemplate, data)
+	if err != nil {
+		return err
+	}
+
+	if cfg.DryRun {
+		logf(cfg, "  Would write Firefox extension files to: %s\n", cfg.FirefoxExtensionDir)
+		logf(cfg, "  Would package XPI at: %s\n", cfg.FirefoxExtensionXPI)
+		return nil
+	}
+
+	if err := os.RemoveAll(cfg.FirefoxExtensionDir); err != nil {
+		return fmt.Errorf("clean firefox extension dir: %w", err)
+	}
+	if err := os.MkdirAll(cfg.FirefoxExtensionDir, 0755); err != nil {
+		return fmt.Errorf("mkdir firefox extension dir: %w", err)
+	}
+
+	files := map[string]string{
+		"manifest.json": manifest,
+		"background.js": background,
+		"theme.json":    themeJSON,
+	}
+	for name, content := range files {
+		path := filepath.Join(cfg.FirefoxExtensionDir, name)
+		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+			return fmt.Errorf("write firefox extension file %s: %w", path, err)
+		}
+	}
+
+	if err := os.Remove(cfg.FirefoxExtensionXPI); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("remove old firefox xpi: %w", err)
+	}
+
+	cmd := exec.Command(
+		"7z", "a", "-tzip", cfg.FirefoxExtensionXPI,
+		"manifest.json", "background.js", "theme.json",
+	)
+	cmd.Dir = cfg.FirefoxExtensionDir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("package firefox xpi: %w", err)
+	}
+
+	return nil
+}
+
 func applySidebery(cfg *Config, s *scheme.Base16) error {
 	content, err := template.RenderString(sideberyTemplate, s.ToMap())
 	if err != nil {
@@ -746,4 +841,9 @@ func run(name string, args ...string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+func firefoxExtensionVersion() string {
+	now := time.Now()
+	return fmt.Sprintf("%d.%d.%d.%d", now.Year(), now.Month(), now.Day(), now.Hour()*100+now.Minute())
 }

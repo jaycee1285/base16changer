@@ -198,7 +198,110 @@ func (s *Base16) ToMap() map[string]string {
 	m["accent-dec-g"] = ag
 	m["accent-dec-b"] = ab
 
+	neutralRamp := s.neutralRamp()
+	for key, value := range neutralRamp {
+		m[key] = value
+	}
+
 	return m
+}
+
+func (s *Base16) neutralRamp() map[string]string {
+	light := s.isLightVariant()
+
+	var ramp []string
+	if light {
+		ramp = []string{
+			s.Palette.Base00,
+			s.Palette.Base01,
+			s.Palette.Base01,
+			s.Palette.Base02,
+			s.Palette.Base02,
+			s.Palette.Base03,
+			s.Palette.Base03,
+			s.Palette.Base04,
+			s.Palette.Base04,
+			s.Palette.Base05,
+			s.Palette.Base05,
+			s.Palette.Base06,
+			s.Palette.Base06,
+			s.Palette.Base07,
+			s.Palette.Base07,
+			s.Palette.Base07,
+			s.Palette.Base07,
+			s.Palette.Base07,
+		}
+	} else {
+		ramp = []string{
+			s.Palette.Base07,
+			s.Palette.Base06,
+			s.Palette.Base06,
+			s.Palette.Base05,
+			s.Palette.Base05,
+			s.Palette.Base04,
+			s.Palette.Base04,
+			s.Palette.Base03,
+			s.Palette.Base03,
+			s.Palette.Base02,
+			s.Palette.Base02,
+			s.Palette.Base01,
+			s.Palette.Base01,
+			s.Palette.Base00,
+			s.Palette.Base00,
+			s.Palette.Base00,
+			s.Palette.Base00,
+			s.Palette.Base00,
+		}
+	}
+
+	keys := []string{
+		"grey-050-hex",
+		"grey-100-hex",
+		"grey-150-hex",
+		"grey-200-hex",
+		"grey-250-hex",
+		"grey-300-hex",
+		"grey-350-hex",
+		"grey-400-hex",
+		"grey-450-hex",
+		"grey-500-hex",
+		"grey-550-hex",
+		"grey-600-hex",
+		"grey-650-hex",
+		"grey-700-hex",
+		"grey-750-hex",
+		"grey-800-hex",
+		"grey-850-hex",
+		"grey-900-hex",
+	}
+
+	out := make(map[string]string, len(keys)+1)
+	for i, key := range keys {
+		out[key] = ramp[i]
+	}
+	out["grey-950-hex"] = ramp[len(ramp)-1]
+	return out
+}
+
+func (s *Base16) isLightVariant() bool {
+	switch strings.ToLower(strings.TrimSpace(s.Variant)) {
+	case "light":
+		return true
+	case "dark":
+		return false
+	}
+
+	bgR, bgG, bgB := hexToDec(s.Palette.Base00)
+	fgR, fgG, fgB := hexToDec(s.Palette.Base05)
+
+	bg := atoi(bgR) + atoi(bgG) + atoi(bgB)
+	fg := atoi(fgR) + atoi(fgG) + atoi(fgB)
+	return bg > fg
+}
+
+func atoi(s string) int {
+	v, _ := strconv.Atoi(s)
+	return v
 }
 
 func slugify(name string) string {
