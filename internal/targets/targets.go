@@ -59,6 +59,9 @@ type Config struct {
 	// LibreWolf/Firefox colors.css
 	LibrewolfCSS string
 
+	// Sidebery sidebar tab extension CSS
+	SideberyCSS string
+
 	// Ferritebar config to touch after apply
 	FerritebarConfig string
 
@@ -93,6 +96,7 @@ func DefaultConfig() *Config {
 		Quiet:            false,
 		MakoConfig:       filepath.Join(home, ".config/mako/config"),
 		LibrewolfCSS:     filepath.Join(home, ".config/base16changer/librewolf/colors.css"),
+		SideberyCSS:      filepath.Join(home, ".config/base16changer/sidebery/styles.css"),
 		FerritebarConfig: filepath.Join(home, ".config/ferritebar/config.toml"),
 		OrchisDestDir:    filepath.Join(home, ".local/share/themes"),
 	}
@@ -192,6 +196,13 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 		logf(cfg, "  [WARN] librewolf: %v\n", err)
 	} else {
 		logln(cfg, "  [OK] librewolf")
+	}
+
+	// 7c. Sidebery (sidebar tab extension)
+	if err := applySidebery(cfg, s); err != nil {
+		logf(cfg, "  [WARN] sidebery: %v\n", err)
+	} else {
+		logln(cfg, "  [OK] sidebery")
 	}
 
 	// 8. Icon theme (if specified)
@@ -521,6 +532,14 @@ func applyLibrewolf(cfg *Config, s *scheme.Base16) error {
 		return err
 	}
 	return writeFile(cfg, cfg.LibrewolfCSS, content)
+}
+
+func applySidebery(cfg *Config, s *scheme.Base16) error {
+	content, err := template.RenderString(sideberyTemplate, s.ToMap())
+	if err != nil {
+		return err
+	}
+	return writeFile(cfg, cfg.SideberyCSS, content)
 }
 
 func applyIndexTheme(cfg *Config) error {
