@@ -730,8 +730,8 @@ func applyWallpaper(cfg *Config) error {
 	}
 
 	wpPath := filepath.Join(cfg.WallpaperDir, cfg.Wallpaper)
-	if err := run("swww", "img", wpPath); err != nil {
-		return fmt.Errorf("swww: %w", err)
+	if err := run("awww", "img", wpPath); err != nil {
+		return fmt.Errorf("awww: %w", err)
 	}
 
 	return nil
