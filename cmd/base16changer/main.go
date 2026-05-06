@@ -173,7 +173,8 @@ func listSchemesFromDir(dir string) {
 
 func listIconThemes() {
 	icons := targets.ScanIconThemes()
-	fmt.Println("Available icon themes:\n")
+	fmt.Println("Available icon themes:")
+	fmt.Println()
 	printColumns(icons, 3)
 	fmt.Printf("\nTotal: %d icon themes\n", len(icons))
 }

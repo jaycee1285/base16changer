@@ -2,14 +2,17 @@ package targets
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/jaycee1285/base16changer/internal/gtksourceview"
 	"github.com/jaycee1285/base16changer/internal/orchis"
 	"github.com/jaycee1285/base16changer/internal/scheme"
 	"github.com/jaycee1285/base16changer/internal/template"
@@ -18,21 +21,22 @@ import (
 // Config holds paths and settings for theme application
 type Config struct {
 	// Scheme directories
-	SchemesDir string // Path to base16 schemes (YAML files)
+	SchemesDir     string // Path to base16 schemes (YAML files)
 	SelectedScheme string
 
 	// Target config paths
-	KittyThemeConf string // ~/.config/kitty/current-theme.conf
-	FuzzelIni      string // ~/.config/fuzzel/fuzzel.ini
-	SyntectThemeDir string // ~/.local/share/themes/tmThemes
-	SyntectCurrent  string // ~/.config/syntect/current.tmTheme
-	Gtk2RC         string // ~/.themes/Base16/gtk-2.0/gtkrc
-	Gtk3CSS        string // ~/.themes/Base16/gtk-3.0/gtk.css
-	Gtk4CSS        string // ~/.config/gtk-4.0/gtk.css (libadwaita)
-	Gtk4ThemeCSS   string // ~/.themes/Base16/gtk-4.0/gtk.css
-	IndexTheme     string // ~/.themes/Base16/index.theme
-	OpenboxThemerc string // ~/.themes/Base16/openbox-3/themerc
-	LabwcRcXml     string // ~/.config/labwc/rc.xml
+	KittyThemeConf        string // ~/.config/kitty/current-theme.conf
+	FuzzelIni             string // ~/.config/fuzzel/fuzzel.ini
+	SyntectThemeDir       string // ~/.local/share/themes/tmThemes
+	SyntectCurrent        string // ~/.config/syntect/current.tmTheme
+	GtkSourceview5Current string // ~/.config/gtksourceview-5/current.xml
+	Gtk2RC                string // ~/.themes/Base16/gtk-2.0/gtkrc
+	Gtk3CSS               string // ~/.themes/Base16/gtk-3.0/gtk.css
+	Gtk4CSS               string // ~/.config/gtk-4.0/gtk.css (libadwaita)
+	Gtk4ThemeCSS          string // ~/.themes/Base16/gtk-4.0/gtk.css
+	IndexTheme            string // ~/.themes/Base16/index.theme
+	OpenboxThemerc        string // ~/.themes/Base16/openbox-3/themerc
+	LabwcRcXml            string // ~/.config/labwc/rc.xml
 
 	// Openbox theme name (written to rc.xml)
 	OpenboxThemeName string
@@ -86,31 +90,32 @@ func DefaultConfig() *Config {
 	return &Config{
 		// SchemesDir is used for CLI --schemes-dir override only
 		// ScanSchemesDirs() returns the actual search paths
-		KittyThemeConf:   filepath.Join(home, ".config/kitty/current-theme.conf"),
-		FuzzelIni:        filepath.Join(home, ".config/fuzzel/fuzzel.ini"),
-		SyntectThemeDir:  filepath.Join(home, ".local/share/themes/tmThemes"),
-		SyntectCurrent:   filepath.Join(home, ".config/syntect/current.tmTheme"),
-		Gtk2RC:           filepath.Join(home, ".themes/Base16/gtk-2.0/gtkrc"),
-		Gtk3CSS:          filepath.Join(home, ".themes/Base16/gtk-3.0/gtk.css"),
-		Gtk4CSS:          filepath.Join(home, ".config/gtk-4.0/gtk.css"),
-		Gtk4ThemeCSS:     filepath.Join(home, ".themes/Base16/gtk-4.0/gtk.css"),
-		IndexTheme:       filepath.Join(home, ".themes/Base16/index.theme"),
-		OpenboxThemerc:   filepath.Join(home, ".themes/Base16/openbox-3/themerc"),
-		LabwcRcXml:       filepath.Join(home, ".config/labwc/rc.xml"),
-		OpenboxThemeName: "Base16",
-		GtkThemeName:     "Base16",
-		WallpaperDir:     filepath.Join(home, "Pictures/walls"),
-		DryRun:           false,
-		Quiet:            false,
-		MakoConfig:       filepath.Join(home, ".config/mako/config"),
-		LibrewolfCSS:     filepath.Join(home, ".config/base16changer/librewolf/colors.css"),
-		FirefoxThemeJSON: filepath.Join(home, ".config/base16changer/firefox/theme.json"),
-		FirefoxExtensionDir: filepath.Join(home, ".config/base16changer/firefox/extension"),
-		FirefoxExtensionXPI: filepath.Join(home, ".config/base16changer/firefox/base16changer-theme.xpi"),
-		FirefoxExtensionID:  "base16changer-theme@john",
-		SideberyCSS:      filepath.Join(home, ".config/base16changer/sidebery/styles.css"),
-		FerritebarConfig: filepath.Join(home, ".config/ferritebar/config.toml"),
-		OrchisDestDir:    filepath.Join(home, ".local/share/themes"),
+		KittyThemeConf:        filepath.Join(home, ".config/kitty/current-theme.conf"),
+		FuzzelIni:             filepath.Join(home, ".config/fuzzel/fuzzel.ini"),
+		SyntectThemeDir:       filepath.Join(home, ".local/share/themes/tmThemes"),
+		SyntectCurrent:        filepath.Join(home, ".config/syntect/current.tmTheme"),
+		GtkSourceview5Current: filepath.Join(home, ".config/gtksourceview-5/current.xml"),
+		Gtk2RC:                filepath.Join(home, ".themes/Base16/gtk-2.0/gtkrc"),
+		Gtk3CSS:               filepath.Join(home, ".themes/Base16/gtk-3.0/gtk.css"),
+		Gtk4CSS:               filepath.Join(home, ".config/gtk-4.0/gtk.css"),
+		Gtk4ThemeCSS:          filepath.Join(home, ".themes/Base16/gtk-4.0/gtk.css"),
+		IndexTheme:            filepath.Join(home, ".themes/Base16/index.theme"),
+		OpenboxThemerc:        filepath.Join(home, ".themes/Base16/openbox-3/themerc"),
+		LabwcRcXml:            filepath.Join(home, ".config/labwc/rc.xml"),
+		OpenboxThemeName:      "Base16",
+		GtkThemeName:          "Base16",
+		WallpaperDir:          filepath.Join(home, "Pictures/walls"),
+		DryRun:                false,
+		Quiet:                 false,
+		MakoConfig:            filepath.Join(home, ".config/mako/config"),
+		LibrewolfCSS:          filepath.Join(home, ".config/base16changer/librewolf/colors.css"),
+		FirefoxThemeJSON:      filepath.Join(home, ".config/base16changer/firefox/theme.json"),
+		FirefoxExtensionDir:   filepath.Join(home, ".config/base16changer/firefox/extension"),
+		FirefoxExtensionXPI:   filepath.Join(home, ".config/base16changer/firefox/base16changer-theme.xpi"),
+		FirefoxExtensionID:    "base16changer-theme@john",
+		SideberyCSS:           filepath.Join(home, ".config/base16changer/sidebery/styles.css"),
+		FerritebarConfig:      filepath.Join(home, ".config/ferritebar/config.toml"),
+		OrchisDestDir:         filepath.Join(home, ".local/share/themes"),
 	}
 }
 
@@ -137,6 +142,13 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 		logf(cfg, "  [WARN] syntect: %v\n", err)
 	} else {
 		logln(cfg, "  [OK] syntect")
+	}
+
+	// 2c. GtkSourceView 5 current style scheme
+	if err := applyGtkSourceview5Current(cfg, s); err != nil {
+		logf(cfg, "  [WARN] gtksourceview-5: %v\n", err)
+	} else {
+		logln(cfg, "  [OK] gtksourceview-5")
 	}
 
 	// 3. Orchis theme (GTK 3/4 compiled from SCSS)
@@ -313,6 +325,7 @@ func applySyntectCurrentTheme(cfg *Config, s *scheme.Base16) error {
 	if err != nil {
 		return fmt.Errorf("read tmTheme %s: %w", src, err)
 	}
+	content = normalizeTmThemeContrast(content, 4.5)
 
 	dir := filepath.Dir(cfg.SyntectCurrent)
 	if err := os.MkdirAll(dir, 0755); err != nil {
@@ -324,6 +337,78 @@ func applySyntectCurrentTheme(cfg *Config, s *scheme.Base16) error {
 	}
 
 	return nil
+}
+
+func normalizeTmThemeContrast(content []byte, minRatio float64) []byte {
+	text := string(content)
+	bg := firstPlistColor(text, "background")
+	defaultFg := firstPlistColor(text, "foreground")
+	if bg == "" || defaultFg == "" {
+		return content
+	}
+
+	foregroundRe := regexp.MustCompile(`(?s)(<key>foreground</key>\s*<string>)(#[0-9A-Fa-f]{6})(</string>)`)
+	normalized := foregroundRe.ReplaceAllStringFunc(text, func(match string) string {
+		parts := foregroundRe.FindStringSubmatch(match)
+		if len(parts) != 4 {
+			return match
+		}
+		if contrastRatio(parts[2], bg) >= minRatio {
+			return match
+		}
+		return parts[1] + defaultFg + parts[3]
+	})
+
+	return []byte(normalized)
+}
+
+func firstPlistColor(content, key string) string {
+	re := regexp.MustCompile(`(?s)<key>` + regexp.QuoteMeta(key) + `</key>\s*<string>(#[0-9A-Fa-f]{6})</string>`)
+	match := re.FindStringSubmatch(content)
+	if len(match) != 2 {
+		return ""
+	}
+	return match[1]
+}
+
+func contrastRatio(fg, bg string) float64 {
+	l1 := relativeLuminance(fg)
+	l2 := relativeLuminance(bg)
+	if l1 < l2 {
+		l1, l2 = l2, l1
+	}
+	return (l1 + 0.05) / (l2 + 0.05)
+}
+
+func relativeLuminance(hex string) float64 {
+	hex = strings.TrimPrefix(hex, "#")
+	if len(hex) != 6 {
+		return 0
+	}
+	r := linearRGB(hex[0:2])
+	g := linearRGB(hex[2:4])
+	b := linearRGB(hex[4:6])
+	return 0.2126*r + 0.7152*g + 0.0722*b
+}
+
+func linearRGB(hex string) float64 {
+	v, err := strconv.ParseUint(hex, 16, 8)
+	if err != nil {
+		return 0
+	}
+	c := float64(v) / 255
+	if c <= 0.03928 {
+		return c / 12.92
+	}
+	return math.Pow((c+0.055)/1.055, 2.4)
+}
+
+func applyGtkSourceview5Current(cfg *Config, s *scheme.Base16) error {
+	content, err := gtksourceview.RenderV5Current(s)
+	if err != nil {
+		return err
+	}
+	return writeFile(cfg, cfg.GtkSourceview5Current, content)
 }
 
 func findSyntectThemeSource(cfg *Config, s *scheme.Base16) (string, error) {
