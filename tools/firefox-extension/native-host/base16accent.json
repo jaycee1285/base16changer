@@ -1,0 +1,7 @@
+{
+  "name": "base16accent",
+  "description": "Returns the current base16changer accent for the base16-accent WebExtension.",
+  "path": "/home/john/.local/bin/base16-accent-host.sh",
+  "type": "stdio",
+  "allowed_extensions": ["base16-accent@base16changer.local"]
+}

@@ -8,83 +8,98 @@ Most Base16 themes default to blue (`base0D`) as the primary accent. But many th
 
 ### Pinks & Magentas
 
-| Theme | Accent | Hex | Where It Hides | base0D (blue) |
-|-------|--------|-----|----------------|---------------|
-| **Hemisu Dark** | hot pink | `#ff0054` | color_02 (red slot) | `#67bee3` |
-| **Hemisu Light** | hot pink | `#ff0054` | cursor | `#538091` |
-| **Jup** | magenta | `#dd006f` | color_02 | `#006fdd` |
-| **Rosé Pine Moon** | rose pink | `#eb6f92` | color_02 | `#3e8fb0` |
-| **Papercolor Dark** | deep magenta | `#af005f` | color_02 | `#5fafd7` |
-| **Pencil Dark** | vivid pink | `#c30771` | color_02 | `#008ec4` |
-| **Pencil Light** | vivid pink | `#c30771` | color_02 | `#008ec4` |
-| **One Light** | purple-pink | `#930092` | color_06 (magenta) | `#315eee` |
-| **Catppuccin Latte** | rosewater | `#dc8a78` | base06 (repurposed) | `#1e66f5` |
+| Theme                | Accent       | Hex       | Where It Hides      | base0D (blue) |
+|----------------------|--------------|-----------|---------------------|---------------|
+| **Hemisu Dark**      | hot pink     | `#ff0054` | color_02 (red slot) | `#67bee3`     |
+| **Hemisu Light**     | hot pink     | `#ff0054` | cursor              | `#538091`     |
+| **Jup**              | magenta      | `#dd006f` | color_02            | `#006fdd`     |
+| **Rosé Pine Moon**   | rose pink    | `#eb6f92` | color_02            | `#3e8fb0`     |
+| **Papercolor Dark**  | deep magenta | `#af005f` | color_02            | `#5fafd7`     |
+| **Pencil Dark**      | vivid pink   | `#c30771` | color_02            | `#008ec4`     |
+| **Pencil Light**     | vivid pink   | `#c30771` | color_02            | `#008ec4`     |
+| **One Light**        | purple-pink  | `#930092` | color_06 (magenta)  | `#315eee`     |
+| **Catppuccin Latte** | rosewater    | `#dc8a78` | base06 (repurposed) | `#1e66f5`     |
 
 ### Oranges & Ambers
 
-| Theme | Accent | Hex | Where It Hides | base0D (blue) |
-|-------|--------|-----|----------------|---------------|
-| **Ayu Light** | warm orange | `#ff9940` | cursor | `#399ee6` |
-| **Ayu Mirage** | golden orange | `#ffcc66` | cursor | `#73d0ff` |
-| **Rosé Pine Dawn** | marigold | `#ea9d34` | color_04 (yellow) | `#286983` |
-| **Solarized Light** | amber | `#cb4b16` | active_border_color | `#268bd2` |
-| **Solarized Dark HC** | amber | `#a57706` | color_04 | `#2176c7` |
-| **Monokai Pro Light** | warm orange | `#cc7a0a` | color_04 | `#e16032` |
-| **Monokai Pro Light Sun** | burnt orange | `#b16803` | color_04 | `#d4572b` |
-| **Monokai Pro Ristretto** | golden | `#edce73` | color_04 | `#dc9373` |
-| **Seoul256** | amber | `#d8af5f` | color_04 | `#85add4` |
-| **Tokyo Night Storm** | honey | `#e0af68` | color_04 | `#7aa2f7` |
-| **Everforest Light Hard** | deep gold | `#dfa000` | color_04 | `#3a94c5` |
-| **Gruvbox Material Light** | ochre | `#b47109` | color_04 | `#45707a` |
-| **Gruvbox Material Dark** | warm gold | `#d8a657` | color_04 | `#7daea3` |
+| Theme               | Accent        | Hex       | Where It Hides      | base0D (blue) |
+|---------------------|---------------|-----------|---------------------|---------------|
+| **Ayu Light**       | warm orange   | `#ff9940` | cursor              | `#399ee6`     |
+| **Ayu Mirage**      | golden orange | `#ffcc66` | cursor              | `#73d0ff`     |
+| **Rosé Pine Dawn**  | marigold      | `#ea9d34` | color_04 (yellow)   | `#286983`     |
+| **Solarized Light** | amber         | `#cb4b16` | active_border_color | `#268bd2`     |
+| **Solarized Dark    | amber         | `#a57706` | color_04            | `#2176c7`     |
+| HC**                |               |           |                     |               |
+| **Monokai Pro       | warm orange   | `#cc7a0a` | color_04            | `#e16032`     |
+| Light**             |               |           |                     |               |
+| **Monokai Pro Light | burnt orange  | `#b16803` | color_04            | `#d4572b`     |
+| Sun**               |               |           |                     |               |
+| **Monokai Pro       | golden        | `#edce73` | color_04            | `#dc9373`     |
+| Ristretto**         |               |           |                     |               |
+| **Seoul256**        | amber         | `#d8af5f` | color_04            | `#85add4`     |
+| **Tokyo Night       | honey         | `#e0af68` | color_04            | `#7aa2f7`     |
+| Storm**             |               |           |                     |               |
+| **Everforest Light  | deep gold     | `#dfa000` | color_04            | `#3a94c5`     |
+| Hard**              |               |           |                     |               |
+| **Gruvbox Material  | ochre         | `#b47109` | color_04            | `#45707a`     |
+| Light**             |               |           |                     |               |
+| **Gruvbox Material  | warm gold     | `#d8a657` | color_04            | `#7daea3`     |
+| Dark**              |               |           |                     |               |
 
 ### Reds & Corals
 
-| Theme | Accent | Hex | Where It Hides | base0D (blue) |
-|-------|--------|-----|----------------|---------------|
-| **Kanagawa Dragon** | muted coral | `#c4746e` | color_02 | `#8ba4b0` |
-| **Kanagawa Wave** | crimson | `#c34043` | color_02 | `#7e9cd8` |
-| **Kanagawa Lotus** | rose red | `#c84053` | color_02 | `#4d699b` |
-| **Everforest Dark Hard** | soft red | `#e67e80` | color_02 | `#7fbbb3` |
-| **Gotham** | signal red | `#c33027` | color_02 | `#195465` |
-| **Modus Operandi** | deep red | `#a60000` | color_02 | `#0031a9` |
-| **Oceanic Next** | coral red | `#e44754` | color_02 | `#5486c0` |
+| Theme               | Accent      | Hex       | Where It Hides | base0D (blue) |
+|---------------------|-------------|-----------|----------------|---------------|
+| **Kanagawa Dragon** | muted coral | `#c4746e` | color_02       | `#8ba4b0`     |
+| **Kanagawa Wave**   | crimson     | `#c34043` | color_02       | `#7e9cd8`     |
+| **Kanagawa Lotus**  | rose red    | `#c84053` | color_02       | `#4d699b`     |
+| **Everforest Dark   | soft red    | `#e67e80` | color_02       | `#7fbbb3`     |
+| Hard**              |             |           |                |               |
+| **Gotham**          | signal red  | `#c33027` | color_02       | `#195465`     |
+| **Modus Operandi**  | deep red    | `#a60000` | color_02       | `#0031a9`     |
+| **Oceanic Next**    | coral red   | `#e44754` | color_02       | `#5486c0`     |
 
 ### Greens & Teals
 
-| Theme | Accent | Hex | Where It Hides | base0D (blue) |
-|-------|--------|-----|----------------|---------------|
-| **Arc Light** | neon green | `#00ff00` | cursor | `#2455c3` |
-| **Selenized Light** | leaf green | `#489100` | color_03 | `#0072d4` |
-| **Tomorrow** | olive green | `#718c00` | color_03 | `#4271ae` |
-| **Sea Shells** | deep teal | `#027c9b` | color_03 | `#1e4950` |
-| **3024 Day** | emerald | `#01a252` | color_03 | `#01a0e4` |
-| **Tomorrow Night Blue** | bright aqua | `#99ffff` | color_07 (cyan) | `#bbdaff` |
+| Theme               | Accent      | Hex       | Where It Hides  | base0D (blue) |
+|---------------------|-------------|-----------|-----------------|---------------|
+| **Arc Light**       | neon green  | `#00ff00` | cursor          | `#2455c3`     |
+| **Selenized Light** | leaf green  | `#489100` | color_03        | `#0072d4`     |
+| **Tomorrow**        | olive green | `#718c00` | color_03        | `#4271ae`     |
+| **Sea Shells**      | deep teal   | `#027c9b` | color_03        | `#1e4950`     |
+| **3024 Day**        | emerald     | `#01a252` | color_03        | `#01a0e4`     |
+| **Tomorrow Night    | bright aqua | `#99ffff` | color_07 (cyan) | `#bbdaff`     |
+| Blue**              |             |           |                 |               |
 
 ### Yellows
 
-| Theme | Accent | Hex | Where It Hides | base0D (blue) |
-|-------|--------|-----|----------------|---------------|
-| **Flexoki Dark** | mustard | `#ad8301` | color_04 | `#205ea6` |
-| **Flexoki Light** | mustard | `#ad8301` | color_04 | `#205ea6` |
-| **Modus Vivendi** | bright yellow | `#d0bc00` | color_04 | `#2fafff` |
-| **Selenized Dark** | gold | `#dbb32d` | color_04 | `#4695f7` |
-| **Paper** | solarized yellow | `#b58900` | color_04 | `#1e6fcc` |
+| Theme              | Accent           | Hex       | Where It Hides | base0D (blue) |
+|--------------------|------------------|-----------|----------------|---------------|
+| **Flexoki Dark**   | mustard          | `#ad8301` | color_04       | `#205ea6`     |
+| **Flexoki Light**  | mustard          | `#ad8301` | color_04       | `#205ea6`     |
+| **Modus Vivendi**  | bright yellow    | `#d0bc00` | color_04       | `#2fafff`     |
+| **Selenized Dark** | gold             | `#dbb32d` | color_04       | `#4695f7`     |
+| **Paper**          | solarized yellow | `#b58900` | color_04       | `#1e6fcc`     |
 
 ### Already-Interesting base0D (not blue by default)
 
 These themes already have non-blue values in their base0D slot — no changes needed for base16changer:
 
-| Theme | base0D color | Hue |
-|-------|-------------|-----|
-| **Gruvbox dark** | `#458588` | teal |
-| **Gruvbox dark, hard** | `#83a598` | sage teal |
-| **Gruvbox dark, pale** | `#83adad` | muted teal |
-| **Gruvbox light** | `#458588` | teal |
-| **Gruvbox light, hard** | `#076678` | deep teal |
-| **Gruvbox Material Dark, Hard** | `#7daea3` | seafoam |
-| **Gruvbox Material Light, Hard** | `#45707a` | slate teal |
-| **Tokyo Night Dark** | `#2ac3de` | bright cyan |
+| Theme                | base0D color | Hue         |
+|----------------------|--------------|-------------|
+| **Gruvbox dark**     | `#458588`    | teal        |
+| **Gruvbox dark,      | `#83a598`    | sage teal   |
+| hard**               |              |             |
+| **Gruvbox dark,      | `#83adad`    | muted teal  |
+| pale**               |              |             |
+| **Gruvbox light**    | `#458588`    | teal        |
+| **Gruvbox light,     | `#076678`    | deep teal   |
+| hard**               |              |             |
+| **Gruvbox Material   | `#7daea3`    | seafoam     |
+| Dark, Hard**         |              |             |
+| **Gruvbox Material   | `#45707a`    | slate teal  |
+| Light, Hard**        |              |             |
+| **Tokyo Night Dark** | `#2ac3de`    | bright cyan |
 
 ---
 

@@ -35,13 +35,12 @@ type Config struct {
 	Gtk4CSS               string // ~/.config/gtk-4.0/gtk.css (libadwaita)
 	Gtk4ThemeCSS          string // ~/.themes/Base16/gtk-4.0/gtk.css
 	IndexTheme            string // ~/.themes/Base16/index.theme
-	OpenboxThemerc        string // ~/.themes/Base16/openbox-3/themerc
 	LabwcRcXml            string // ~/.config/labwc/rc.xml
 
-	// Openbox theme name (written to rc.xml)
-	OpenboxThemeName string
-
-	// GTK base theme name (for dconf toggle trick)
+	// GTK base theme name (for dconf toggle trick + openbox path resolution).
+	// Set per-apply to Orchis-Light-Compact or Orchis-Dark-Compact based on
+	// the scheme's variant; openbox themerc is written to
+	// <OrchisDestDir>/<GtkThemeName>/openbox-3/themerc.
 	GtkThemeName string
 
 	// Icon theme (optional, set via flag)
@@ -63,13 +62,10 @@ type Config struct {
 	// LibreWolf/Firefox colors.css
 	LibrewolfCSS string
 
-	// Firefox theme payload for Firefox Color/theme API consumers
-	FirefoxThemeJSON string
-
-	// Packaged Firefox/LibreWolf theme extension
-	FirefoxExtensionDir string
-	FirefoxExtensionXPI string
-	FirefoxExtensionID  string
+	// Tiny JSON payload consumed by the `base16-accent` WebExtension's
+	// native-messaging host to colour LibreWolf private windows. See
+	// tools/firefox-extension/ for the extension + host install steps.
+	FirefoxAccentJSON string
 
 	// Sidebery sidebar tab extension CSS
 	SideberyCSS string
@@ -100,19 +96,14 @@ func DefaultConfig() *Config {
 		Gtk4CSS:               filepath.Join(home, ".config/gtk-4.0/gtk.css"),
 		Gtk4ThemeCSS:          filepath.Join(home, ".themes/Base16/gtk-4.0/gtk.css"),
 		IndexTheme:            filepath.Join(home, ".themes/Base16/index.theme"),
-		OpenboxThemerc:        filepath.Join(home, ".themes/Base16/openbox-3/themerc"),
 		LabwcRcXml:            filepath.Join(home, ".config/labwc/rc.xml"),
-		OpenboxThemeName:      "Base16",
-		GtkThemeName:          "Base16",
+		GtkThemeName:          "Orchis-Light-Compact", // overwritten per-apply by Apply()
 		WallpaperDir:          filepath.Join(home, "Pictures/walls"),
 		DryRun:                false,
 		Quiet:                 false,
 		MakoConfig:            filepath.Join(home, ".config/mako/config"),
 		LibrewolfCSS:          filepath.Join(home, ".config/base16changer/librewolf/colors.css"),
-		FirefoxThemeJSON:      filepath.Join(home, ".config/base16changer/firefox/theme.json"),
-		FirefoxExtensionDir:   filepath.Join(home, ".config/base16changer/firefox/extension"),
-		FirefoxExtensionXPI:   filepath.Join(home, ".config/base16changer/firefox/base16changer-theme.xpi"),
-		FirefoxExtensionID:    "base16changer-theme@john",
+		FirefoxAccentJSON:     filepath.Join(home, ".config/base16changer/accent.json"),
 		SideberyCSS:           filepath.Join(home, ".config/base16changer/sidebery/styles.css"),
 		FerritebarConfig:      filepath.Join(home, ".config/ferritebar/config.toml"),
 		OrchisDestDir:         filepath.Join(home, ".local/share/themes"),
@@ -222,18 +213,13 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 		logln(cfg, "  [OK] librewolf")
 	}
 
-	// 7c. Firefox theme payload (preferred integration point for Sidebery)
-	if err := applyFirefoxTheme(cfg, s); err != nil {
-		logf(cfg, "  [WARN] firefox theme: %v\n", err)
+	// 7c. accent.json — consumed by the base16-accent WebExtension via
+	// native messaging to theme LibreWolf private windows. The extension
+	// itself is a one-time install (see tools/firefox-extension/).
+	if err := applyFirefoxAccent(cfg, s); err != nil {
+		logf(cfg, "  [WARN] firefox accent: %v\n", err)
 	} else {
-		logln(cfg, "  [OK] firefox theme")
-	}
-
-	// 7d. Packaged Firefox theme extension (.xpi)
-	if err := applyFirefoxThemeExtension(cfg, s); err != nil {
-		logf(cfg, "  [WARN] firefox theme xpi: %v\n", err)
-	} else {
-		logln(cfg, "  [OK] firefox theme xpi")
+		logln(cfg, "  [OK] firefox accent")
 	}
 
 	// 7e. Sidebery (sidebar tab extension CSS fallback)
@@ -645,73 +631,58 @@ func applyLibrewolf(cfg *Config, s *scheme.Base16) error {
 	return writeFile(cfg, cfg.LibrewolfCSS, content)
 }
 
-func applyFirefoxTheme(cfg *Config, s *scheme.Base16) error {
-	content, err := template.RenderString(firefoxThemeTemplate, s.ToMap())
-	if err != nil {
-		return err
+// applyFirefoxAccent writes a tiny JSON payload that the base16-accent
+// WebExtension reads (via a native-messaging host) when a private window is
+// opened. Only the accent and variant are exposed; FF's forced private chrome
+// surfaces are dark, so the accent is the only colour we need to inject.
+//
+// Contains both the regular accent (used in normal-window targets) and a
+// "private" variant: if the chosen accent fails AA on FF's forced private
+// field bg #42414d, fall back to base07 (light foreground) which clears AA
+// against both #42414d and #1c1b22.
+func applyFirefoxAccent(cfg *Config, s *scheme.Base16) error {
+	m := s.ToMap()
+	accent := "#" + m["accent-hex"]
+	private := accent
+	const ffPrivField = "#42414d"
+	const ffPrivChrome = "#1c1b22"
+	if scheme.MinRatio(accent, ffPrivField, ffPrivChrome) < scheme.AAThreshold {
+		// Pick the slot with the best worst-case ratio against FF's two
+		// forced private surfaces. base05/06/07 are nominally "fg" slots
+		// but some themes (e.g. Catppuccin) repurpose base07 as a chromatic
+		// accent — so we can't blindly assume base07 is light. Scanning
+		// gives the right answer for any palette.
+		candidates := []string{
+			"#" + m["base07-hex"], "#" + m["base06-hex"], "#" + m["base05-hex"],
+			"#" + m["base0A-hex"], "#" + m["base0B-hex"], "#" + m["base0C-hex"],
+			"#" + m["base0D-hex"], "#" + m["base0E-hex"],
+		}
+		best := private
+		bestMin := scheme.MinRatio(private, ffPrivField, ffPrivChrome)
+		for _, c := range candidates {
+			r := scheme.MinRatio(c, ffPrivField, ffPrivChrome)
+			if r > bestMin {
+				bestMin = r
+				best = c
+			}
+		}
+		private = best
 	}
-	return writeFile(cfg, cfg.FirefoxThemeJSON, content)
-}
-
-func applyFirefoxThemeExtension(cfg *Config, s *scheme.Base16) error {
-	data := s.ToMap()
-	data["extension-id"] = cfg.FirefoxExtensionID
-	data["extension-version"] = firefoxExtensionVersion()
-
-	manifest, err := template.RenderString(firefoxManifestTemplate, data)
-	if err != nil {
-		return err
-	}
-	background, err := template.RenderString(firefoxBackgroundTemplate, data)
-	if err != nil {
-		return err
-	}
-	themeJSON, err := template.RenderString(firefoxThemeTemplate, data)
-	if err != nil {
-		return err
-	}
-
-	if cfg.DryRun {
-		logf(cfg, "  Would write Firefox extension files to: %s\n", cfg.FirefoxExtensionDir)
-		logf(cfg, "  Would package XPI at: %s\n", cfg.FirefoxExtensionXPI)
-		return nil
-	}
-
-	if err := os.RemoveAll(cfg.FirefoxExtensionDir); err != nil {
-		return fmt.Errorf("clean firefox extension dir: %w", err)
-	}
-	if err := os.MkdirAll(cfg.FirefoxExtensionDir, 0755); err != nil {
-		return fmt.Errorf("mkdir firefox extension dir: %w", err)
-	}
-
-	files := map[string]string{
-		"manifest.json": manifest,
-		"background.js": background,
-		"theme.json":    themeJSON,
-	}
-	for name, content := range files {
-		path := filepath.Join(cfg.FirefoxExtensionDir, name)
-		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
-			return fmt.Errorf("write firefox extension file %s: %w", path, err)
+	variant := s.Variant
+	if variant == "" {
+		// Older schemes may omit the field; infer from base00 luminance.
+		if scheme.ContrastRatio("#000000", "#"+s.Palette.Base00) > scheme.ContrastRatio("#ffffff", "#"+s.Palette.Base00) {
+			variant = "light"
+		} else {
+			variant = "dark"
 		}
 	}
-
-	if err := os.Remove(cfg.FirefoxExtensionXPI); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("remove old firefox xpi: %w", err)
-	}
-
-	cmd := exec.Command(
-		"7z", "a", "-tzip", cfg.FirefoxExtensionXPI,
-		"manifest.json", "background.js", "theme.json",
+	// Manual JSON marshal — payload is trivial and we want stable key order.
+	payload := fmt.Sprintf(
+		"{\n  \"accent\": %q,\n  \"private_accent\": %q,\n  \"variant\": %q,\n  \"scheme\": %q\n}\n",
+		accent, private, variant, s.Name,
 	)
-	cmd.Dir = cfg.FirefoxExtensionDir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("package firefox xpi: %w", err)
-	}
-
-	return nil
+	return writeFile(cfg, cfg.FirefoxAccentJSON, payload)
 }
 
 func applySidebery(cfg *Config, s *scheme.Base16) error {
@@ -755,8 +726,13 @@ func updateGtkSettingsIni(cfg *Config, path string) error {
 }
 
 func applyOpenbox(cfg *Config, s *scheme.Base16) error {
-	// Ensure theme directory exists
-	themeDir := filepath.Dir(cfg.OpenboxThemerc)
+	// Write into the active Orchis variant's openbox-3/ subfolder so labwc's
+	// theme lookup (by GTK theme name) finds it. The non-active variant's
+	// themerc is left alone — it'll be refreshed the next time a scheme of
+	// that variant is applied. Both subdirs are bootstrapped at install
+	// time.
+	themercPath := filepath.Join(cfg.OrchisDestDir, cfg.GtkThemeName, "openbox-3", "themerc")
+	themeDir := filepath.Dir(themercPath)
 	if !cfg.DryRun {
 		if err := os.MkdirAll(themeDir, 0755); err != nil {
 			return err
@@ -767,7 +743,7 @@ func applyOpenbox(cfg *Config, s *scheme.Base16) error {
 	if err != nil {
 		return err
 	}
-	return writeFile(cfg, cfg.OpenboxThemerc, content)
+	return writeFile(cfg, themercPath, content)
 }
 
 func updateLabwcRcXml(cfg *Config) error {
@@ -784,7 +760,7 @@ func updateLabwcRcXml(cfg *Config) error {
 	// Replace <theme><name>...</name> with our theme name
 	// Match: <theme>...<name>something</name>
 	re := regexp.MustCompile(`(<theme>\s*\n\s*<name>)[^<]*(</name>)`)
-	newContent := re.ReplaceAllString(string(content), "${1}"+cfg.OpenboxThemeName+"${2}")
+	newContent := re.ReplaceAllString(string(content), "${1}"+cfg.GtkThemeName+"${2}")
 
 	if string(content) == newContent {
 		// No change needed or pattern not found

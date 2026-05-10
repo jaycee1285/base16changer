@@ -128,6 +128,13 @@ func runCLI(cfg *targets.Config, schemeName, schemePath string) {
 		os.Exit(1)
 	}
 
+	// Auto-derive Orchis variant from the scheme's variant unless -dark was
+	// passed explicitly. Without this, every apply uses Light regardless of
+	// scheme, which puts the openbox themerc in the wrong subfolder.
+	if !cfg.DarkMode && strings.EqualFold(strings.TrimSpace(s.Variant), "dark") {
+		cfg.DarkMode = true
+	}
+
 	// Apply
 	if err := targets.Apply(cfg, s); err != nil {
 		fmt.Fprintf(os.Stderr, "Error applying scheme: %v\n", err)

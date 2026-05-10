@@ -60,8 +60,8 @@ const v5Template = `<?xml version="1.0" encoding="UTF-8"?>
     <style name="background-pattern"            background="base0F" />
 
     <!-- Bracket Matching -->
-    <style name="bracket"                       foreground="base0E" />
-    <style name="bracket-match"                 foreground="base0E" bold="true" />
+    <style name="bracket"                       foreground="#{{base0E-aa-hex}}" />
+    <style name="bracket-match"                 foreground="#{{base0E-aa-hex}}" bold="true" />
     <style name="bracket-mismatch"              foreground="base08" background="base01" />
 
     <!-- Right Margin -->
@@ -77,58 +77,58 @@ const v5Template = `<?xml version="1.0" encoding="UTF-8"?>
     <style name="def:doc-comment"               italic="true" />
 
     <!-- Constants -->
-    <style name="def:constant"                  foreground="base0A" />
-    <style name="def:character"                 foreground="base0B" />
-    <style name="def:string"                    foreground="base0B" />
-    <style name="def:special-char"              foreground="base0B" />
-    <style name="def:number"                    foreground="base09" />
-    <style name="def:floating-point"            foreground="base09" />
-    <style name="def:decimal"                   foreground="base09" />
-    <style name="def:base-n-integer"            foreground="base09" />
-    <style name="def:complex"                   foreground="base09" />
-    <style name="def:special-constant"          foreground="base09" />
-    <style name="def:boolean"                   foreground="base09" />
-    <style name="def:null-value"                foreground="base09" />
+    <style name="def:constant"                  foreground="#{{base0A-aa-hex}}" />
+    <style name="def:character"                 foreground="#{{base0B-aa-hex}}" />
+    <style name="def:string"                    foreground="#{{base0B-aa-hex}}" />
+    <style name="def:special-char"              foreground="#{{base0B-aa-hex}}" />
+    <style name="def:number"                    foreground="#{{base09-aa-hex}}" />
+    <style name="def:floating-point"            foreground="#{{base09-aa-hex}}" />
+    <style name="def:decimal"                   foreground="#{{base09-aa-hex}}" />
+    <style name="def:base-n-integer"            foreground="#{{base09-aa-hex}}" />
+    <style name="def:complex"                   foreground="#{{base09-aa-hex}}" />
+    <style name="def:special-constant"          foreground="#{{base09-aa-hex}}" />
+    <style name="def:boolean"                   foreground="#{{base09-aa-hex}}" />
+    <style name="def:null-value"                foreground="#{{base09-aa-hex}}" />
 
     <!-- Identifiers -->
-    <style name="def:identifier"                foreground="base0E" />
+    <style name="def:identifier"                foreground="#{{base0E-aa-hex}}" />
 
     <!-- Functions -->
-    <style name="def:function"                  foreground="base0D" />
-    <style name="def:function-name"             foreground="base0D" />
+    <style name="def:function"                  foreground="#{{base0D-aa-hex}}" />
+    <style name="def:function-name"             foreground="#{{base0D-aa-hex}}" />
 
     <!-- Builtin -->
-    <style name="def:builtin"                   foreground="base0C" />
-    <style name="def:built-in-function"         foreground="base0C" />
+    <style name="def:builtin"                   foreground="#{{base0C-aa-hex}}" />
+    <style name="def:built-in-function"         foreground="#{{base0C-aa-hex}}" />
 
     <!-- Keywords -->
-    <style name="def:keyword"                   foreground="base0E" />
+    <style name="def:keyword"                   foreground="#{{base0E-aa-hex}}" />
 
     <!-- Statements -->
-    <style name="def:statement"                 foreground="base09" />
+    <style name="def:statement"                 foreground="#{{base09-aa-hex}}" />
 
     <!-- Types -->
-    <style name="def:type"                      foreground="base0B" />
+    <style name="def:type"                      foreground="#{{base0B-aa-hex}}" />
 
     <!-- Markup -->
     <style name="def:emphasis"                  italic="true" />
-    <style name="def:strong-emphasis"           foreground="base09" />
-    <style name="def:inline-code"               foreground="base0D" />
+    <style name="def:strong-emphasis"           foreground="#{{base09-aa-hex}}" />
+    <style name="def:inline-code"               foreground="#{{base0D-aa-hex}}" />
     <style name="def:insertion"                 underline="single" />
     <style name="def:deletion"                  strikethrough="true" />
-    <style name="def:link-text"                 foreground="base0E" />
+    <style name="def:link-text"                 foreground="#{{base0E-aa-hex}}" />
     <style name="def:link-symbol"               foreground="base01" bold="true" />
-    <style name="def:link-destination"          foreground="base0C" underline="single" />
-    <style name="def:heading"                   foreground="base0D" bold="true" />
+    <style name="def:link-destination"          foreground="#{{base0C-aa-hex}}" underline="single" />
+    <style name="def:heading"                   foreground="#{{base0D-aa-hex}}" bold="true" />
     <style name="def:thematic-break"            foreground="base0F" />
-    <style name="def:preformatted-section"      foreground="base0D" />
-    <style name="def:list-marker"               foreground="base09" />
+    <style name="def:preformatted-section"      foreground="#{{base0D-aa-hex}}" />
+    <style name="def:list-marker"               foreground="#{{base09-aa-hex}}" />
 
     <!-- Operators -->
-    <style name="def:operator"                  foreground="base0B" />
+    <style name="def:operator"                  foreground="#{{base0B-aa-hex}}" />
 
     <!-- Others -->
-    <style name="def:preprocessor"              foreground="base0E" />
+    <style name="def:preprocessor"              foreground="#{{base0E-aa-hex}}" />
     <style name="def:error"                     foreground="base08" bold="true" />
     <style name="def:note"                      foreground="base0E" bold="true" />
     <style name="def:net-address"               italic="true" underline="single" />
@@ -137,19 +137,19 @@ const v5Template = `<?xml version="1.0" encoding="UTF-8"?>
     <style name="def:underlined"                underline="single" />
 
     <!-- C -->
-    <style name="c:preprocessor"                foreground="base0E" />
-    <style name="c:type-keyword"                foreground="base0E" />
-    <style name="c:function-name"               foreground="base0D" />
+    <style name="c:preprocessor"                foreground="#{{base0E-aa-hex}}" />
+    <style name="c:type-keyword"                foreground="#{{base0E-aa-hex}}" />
+    <style name="c:function-name"               foreground="#{{base0D-aa-hex}}" />
 
     <!-- Python -->
-    <style name="python:string-conversion"      foreground="base0C" />
-    <style name="python:class-name"             foreground="base0A" />
+    <style name="python:string-conversion"      foreground="#{{base0C-aa-hex}}" />
+    <style name="python:class-name"             foreground="#{{base0A-aa-hex}}" />
 
     <!-- YAML -->
-    <style name="yaml:map-key"                  foreground="base0C" />
+    <style name="yaml:map-key"                  foreground="#{{base0C-aa-hex}}" />
 
     <!-- JSON -->
-    <style name="json:keyname"                  foreground="base0C" />
+    <style name="json:keyname"                  foreground="#{{base0C-aa-hex}}" />
 
     <!-- GTK-DOC Overrides -->
     <style name="gtk-doc:type"                  foreground="base0E" />

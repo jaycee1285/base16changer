@@ -62,11 +62,33 @@ func Parse(path string) (*Base16, error) {
 		if err == nil && gogh.Color01 != "" {
 			b16 := gogh.ToBase16()
 			b16.Accent = scheme.Accent
+			b16.autoPromoteAccent()
 			return b16, nil
 		}
 	}
 
+	scheme.autoPromoteAccent()
 	return &scheme, nil
+}
+
+// autoPromoteAccent runs after Parse() and replaces the scheme's accent if it
+// fails WCAG AA against base00 or base01 — see internal/scheme/contrast.go.
+// If accent is empty, default to base0D first so the AA check has something
+// to evaluate (this matches the existing ToMap() fallback). Stderr-warns on
+// any promotion so the user sees it during a render.
+func (s *Base16) autoPromoteAccent() {
+	if s == nil {
+		return
+	}
+	original := s.Accent
+	if original == "" {
+		original = s.Palette.Base0D
+	}
+	promoted, _, replaced := promoteAccent(original, s.Palette)
+	if replaced {
+		warnAccentPromoted(s.Name, original, promoted)
+		s.Accent = promoted
+	}
 }
 
 func (c *Colors) normalize() {
@@ -201,6 +223,27 @@ func (s *Base16) ToMap() map[string]string {
 	neutralRamp := s.neutralRamp()
 	for key, value := range neutralRamp {
 		m[key] = value
+	}
+
+	// AA-normalized variants of chromatic slots, for use as syntax-color
+	// foregrounds in gtk-sourceview5. If a slot fails WCAG AA against either
+	// the view background (base00) or the current-line background (base01),
+	// substitute the default foreground (base05). Mirrors the contrast
+	// normalization already performed by the tmTheme target.
+	chromatic := []struct{ name, hex string }{
+		{"base09", s.Palette.Base09},
+		{"base0A", s.Palette.Base0A},
+		{"base0B", s.Palette.Base0B},
+		{"base0C", s.Palette.Base0C},
+		{"base0D", s.Palette.Base0D},
+		{"base0E", s.Palette.Base0E},
+	}
+	for _, c := range chromatic {
+		aa := c.hex
+		if MinRatio(c.hex, s.Palette.Base00, s.Palette.Base01) < AAThreshold {
+			aa = s.Palette.Base05
+		}
+		m[c.name+"-aa-hex"] = aa
 	}
 
 	return m

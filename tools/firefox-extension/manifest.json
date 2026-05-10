@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  "name": "base16-accent",
+  "version": "0.1.0",
+  "description": "Themes LibreWolf/Firefox private windows with the current base16changer accent. Reads the accent through native messaging on each private-window open, so theme changes propagate without reloading the extension.",
+  "permissions": ["nativeMessaging", "windows", "theme"],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "base16-accent@base16changer.local",
+      "strict_min_version": "115.0"
+    }
+  }
+}

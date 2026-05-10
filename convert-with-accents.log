@@ -1,0 +1,110 @@
+[already_has_accent] /home/john/.local/share/themes/Arc Light.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Ayu Light.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Ayu Mirage.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Belafonte Day.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Belafonte Night.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Breath Light.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Catppuccin Latte.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Catppuccin Macchiato.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Everforest Dark Hard.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Everforest Light Hard.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Flexoki Dark.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Flexoki Light.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Gotham.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Gruvbox Material Dark.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Gruvbox Material Light.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Harper.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Hemisu Light.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Kanagawa Lotus.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Kanagawa Wave.yml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/Lunaria Dark.yml	accent=#555673 (no non-blue candidate; base0D used as fallback)
+[already_has_accent] /home/john/.local/share/themes/Lunaria Light.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Modus Operandi Tinted.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Modus Operandi.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Modus Vivendi Tinted.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Monokai Pro Light Sun.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Monokai Pro Ristretto.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Nord Light.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Nord.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Novel.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Paper.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Relaxed.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Rosé Pine Dawn.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Rosé Pine Moon.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Selenized Dark.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Selenized Light.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Seoul256 Light.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Seoul256.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Solarized Light.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Tempus Dawn.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Tempus Day.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Tokyo Night Storm.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Tomorrow Night Blue.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Tomorrow.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Vacme.yml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/Zenburn.yml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/ascendancy.yaml	accent=#458588 (already non-blue base0D, made explicit)
+[forced_base0d] /home/john/.local/share/themes/atlas.yaml	accent=#14747e (already non-blue base0D, made explicit)
+[already_has_accent] /home/john/.local/share/themes/ayu-light.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/ayu-mirage.yaml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/bright.yaml	accent=#6fb3d2 (already non-blue base0D, made explicit)
+[already_has_accent] /home/john/.local/share/themes/brushtrees-dark.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/brushtrees.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/catppuccin-latte.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/catppuccin-macchiato.yaml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/charcoal-dark.yaml	accent=#c3a983 (already non-blue base0D, made explicit)
+[forced_base0d] /home/john/.local/share/themes/charcoal-light.yaml	accent=#251e0f (already non-blue base0D, made explicit)
+[already_has_accent] /home/john/.local/share/themes/chinoiserie-morandi.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/chinoiserie.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/da-one-paper.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/da-one-sea.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/danqing-light.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/danqing.yaml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/darktooth.yaml	accent=#0d6678 (already non-blue base0D, made explicit)
+[already_has_accent] /home/john/.local/share/themes/decaf.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/equilibrium-gray-light.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/equilibrium-light.yaml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/everforest-dark-hard.yaml	accent=#7fbbb3 (already non-blue base0D, made explicit)
+[already_has_accent] /home/john/.local/share/themes/everforest-light-hard.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/flexoki-dark.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/flexoki-light.yaml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/grayscale-light.yaml	accent=#686868 (no non-blue candidate; base0D used as fallback)
+[already_has_accent] /home/john/.local/share/themes/gruvbox-material-dark-hard.yaml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/gruvbox-material-light-hard.yaml	accent=#45707a (already non-blue base0D, made explicit)
+[already_has_accent] /home/john/.local/share/themes/material-lighter.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/material-palenight.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/measured-dark.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/measured-light.yaml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/mexico-light.yaml	accent=#7cafc2 (already non-blue base0D, made explicit)
+[already_has_accent] /home/john/.local/share/themes/mocha.yaml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/moonlight.yaml	accent=#40ffff (already non-blue base0D, made explicit)
+[already_has_accent] /home/john/.local/share/themes/nebula.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/nord-light.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/nord.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/nova.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/oceanicnext.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/one-light.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/onedark-dark.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/oxocarbon-dark.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/oxocarbon-light.yaml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/papercolor-light.yaml	accent=#005f87 (already non-blue base0D, made explicit)
+[already_has_accent] /home/john/.local/share/themes/penumbra-dark-contrast-plus-plus.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/penumbra-light-contrast-plus-plus.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/precious-light-warm.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/rose-pine-dawn.yaml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/rose-pine-moon.yaml	accent=#c4a7e7 (already non-blue base0D, made explicit)
+[already_has_accent] /home/john/.local/share/themes/selenized-dark.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/selenized-light.yaml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/silk-dark.yaml	accent=#46bddd (already non-blue base0D, made explicit)
+[forced_base0d] /home/john/.local/share/themes/silk-light.yaml	accent=#39aac9 (already non-blue base0D, made explicit)
+[already_has_accent] /home/john/.local/share/themes/tokyo-night-terminal-storm.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/tomorrow-night.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/tomorrow.yaml	file already contains an accent: field
+[already_has_accent] /home/john/.local/share/themes/yesterday-night.yaml	file already contains an accent: field
+[forced_base0d] /home/john/.local/share/themes/zenburn.yaml	accent=#7cb8bb (already non-blue base0D, made explicit)
+
+# convert-with-accents summary
+# dir=/home/john/.local/share/themes
+# total=104  converted=17
+# already_has_accent=87
+# forced_base0d=17
