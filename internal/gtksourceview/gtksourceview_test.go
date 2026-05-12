@@ -41,7 +41,7 @@ func TestRenderV5Current(t *testing.T) {
 		`<color name="base00" value="#000000" />`,
 		`<color name="base0A" value="#aaaaaa" />`,
 		`<style name="current-line-number"           foreground="base05" background="#rgba(0,0,0,0)" bold="true" />`,
-		`<style name="def:keyword"                   foreground="base0E" />`,
+		`<style name="def:keyword"                   foreground="#eeeeee" />`,
 	}
 	for _, check := range checks {
 		if !strings.Contains(got, check) {
