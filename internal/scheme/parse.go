@@ -225,6 +225,19 @@ func (s *Base16) ToMap() map[string]string {
 		m[key] = value
 	}
 
+	// Fuzzel selection background: for a light scheme, base02 (darker
+	// neutral) keeps dark text readable. For a dark scheme, base02 is too
+	// close to the background, so step out to base04 — unless base04 vs
+	// base05 (text) fails AA, in which case fall back to base03.
+	switch {
+	case s.isLightVariant():
+		m["fuzzel-selection-hex"] = s.Palette.Base02
+	case ContrastRatio(s.Palette.Base05, s.Palette.Base04) < AAThreshold:
+		m["fuzzel-selection-hex"] = s.Palette.Base03
+	default:
+		m["fuzzel-selection-hex"] = s.Palette.Base04
+	}
+
 	// AA-normalized variants of chromatic slots, for use as syntax-color
 	// foregrounds in gtk-sourceview5. If a slot fails WCAG AA against either
 	// the view background (base00) or the current-line background (base01),

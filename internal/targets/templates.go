@@ -57,14 +57,13 @@ color20 #{{base04-hex}}
 color21 #{{base06-hex}}
 `
 
-const fuzzelTemplate = `# Base16 {{scheme-name}}
-# Scheme author: {{scheme-author}}
-
-[colors]
+const fuzzelTemplate = `[colors]
 background={{base01-hex}}f2
 text={{base05-hex}}ff
+prompt={{base05-hex}}ff
+input={{base05-hex}}ff
 match={{accent-hex}}ff
-selection={{base02-hex}}ff
+selection={{fuzzel-selection-hex}}ff
 selection-text={{base05-hex}}ff
 selection-match={{accent-hex}}ff
 border={{accent-hex}}ff
