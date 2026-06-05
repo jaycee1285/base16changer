@@ -224,6 +224,10 @@ func (s *Base16) ToMap() map[string]string {
 	for key, value := range neutralRamp {
 		m[key] = value
 	}
+	openboxColors := s.openboxColors(accent)
+	for key, value := range openboxColors {
+		m[key] = value
+	}
 
 	// Fuzzel selection background: for a light scheme, base02 (darker
 	// neutral) keeps dark text readable. For a dark scheme, base02 is too
@@ -353,6 +357,64 @@ func (s *Base16) isLightVariant() bool {
 	bg := atoi(bgR) + atoi(bgG) + atoi(bgB)
 	fg := atoi(fgR) + atoi(fgG) + atoi(fgB)
 	return bg > fg
+}
+
+func (s *Base16) IsLightVariant() bool {
+	return s.isLightVariant()
+}
+
+func (s *Base16) openboxColors(accent string) map[string]string {
+	p := s.Palette
+	textCandidates := []string{
+		p.Base05,
+		p.Base07,
+		p.Base06,
+		p.Base04,
+		p.Base03,
+		p.Base00,
+	}
+	selectFgCandidates := []string{
+		p.Base00,
+		p.Base07,
+		p.Base05,
+		p.Base06,
+	}
+	destructiveFgCandidates := []string{
+		p.Base00,
+		p.Base07,
+		p.Base05,
+		p.Base06,
+	}
+
+	return map[string]string{
+		"openbox-title-fg-hex":       bestContrast(p.Base01, textCandidates),
+		"openbox-bg-fg-hex":          bestContrast(p.Base00, textCandidates),
+		"openbox-hover-fg-hex":       bestContrast(p.Base02, textCandidates),
+		"openbox-hover-accent-hex":   bestContrast(p.Base02, append([]string{accent}, textCandidates...)),
+		"openbox-selected-bg-hex":    accent,
+		"openbox-selected-fg-hex":    bestContrast(accent, selectFgCandidates),
+		"openbox-destructive-bg-hex": p.Base08,
+		"openbox-destructive-fg-hex": bestContrast(p.Base08, destructiveFgCandidates),
+	}
+}
+
+func bestContrast(bg string, candidates []string) string {
+	best := ""
+	bestRatio := 0.0
+	for _, fg := range candidates {
+		if fg == "" {
+			continue
+		}
+		ratio := ContrastRatio(fg, bg)
+		if best == "" || ratio > bestRatio {
+			best = fg
+			bestRatio = ratio
+		}
+		if ratio >= AAThreshold {
+			return fg
+		}
+	}
+	return best
 }
 
 func atoi(s string) int {

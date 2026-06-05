@@ -35,7 +35,9 @@ type Config struct {
 	Gtk4CSS               string // ~/.config/gtk-4.0/gtk.css (libadwaita)
 	Gtk4ThemeCSS          string // ~/.themes/Base16/gtk-4.0/gtk.css
 	IndexTheme            string // ~/.themes/Base16/index.theme
-	LabwcRcXml            string // ~/.config/labwc/rc.xml
+	LabwcRcXml            string // config repo labwc rc.xml
+	GowallThemeJSON       string // throwaway gowall theme JSON for current scheme
+	WallpaperCurrent      string // current generated wallpaper image
 
 	// GTK base theme name (for dconf toggle trick + openbox path resolution).
 	// Set per-apply to Orchis-Light-Compact or Orchis-Dark-Compact based on
@@ -96,9 +98,11 @@ func DefaultConfig() *Config {
 		Gtk4CSS:               filepath.Join(home, ".config/gtk-4.0/gtk.css"),
 		Gtk4ThemeCSS:          filepath.Join(home, ".themes/Base16/gtk-4.0/gtk.css"),
 		IndexTheme:            filepath.Join(home, ".themes/Base16/index.theme"),
-		LabwcRcXml:            filepath.Join(home, ".config/labwc/rc.xml"),
+		LabwcRcXml:            filepath.Join(home, "repos/config/home/labwc/rc.xml"),
 		GtkThemeName:          "Orchis-Light-Compact", // overwritten per-apply by Apply()
-		WallpaperDir:          filepath.Join(home, "Pictures/walls"),
+		WallpaperDir:          WallpaperDir(),
+		GowallThemeJSON:       filepath.Join(os.TempDir(), "current-gowall.json"),
+		WallpaperCurrent:      filepath.Join(home, ".cache/base16changer/wallpaper-current.png"),
 		DryRun:                false,
 		Quiet:                 false,
 		MakoConfig:            filepath.Join(home, ".config/mako/config"),
@@ -151,7 +155,10 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 	}
 	cfg.GtkThemeName = orchis.ThemeName(orchisVariant)
 
-	if err := orchis.Build(s, orchisVariant, cfg.OrchisDestDir); err != nil {
+	if cfg.DryRun {
+		logf(cfg, "  Would build orchis (%s) in: %s\n", string(orchisVariant), cfg.OrchisDestDir)
+		logln(cfg, "  [OK] orchis ("+string(orchisVariant)+")")
+	} else if err := orchis.Build(s, orchisVariant, cfg.OrchisDestDir); err != nil {
 		logf(cfg, "  [WARN] orchis: %v\n", err)
 	} else {
 		logln(cfg, "  [OK] orchis ("+string(orchisVariant)+")")
@@ -245,7 +252,7 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 
 	// 8. Wallpaper (if specified)
 	if cfg.Wallpaper != "" {
-		if err := applyWallpaper(cfg); err != nil {
+		if err := applyWallpaper(cfg, s); err != nil {
 			logf(cfg, "  [WARN] wallpaper: %v\n", err)
 		} else {
 			logln(cfg, "  [OK] wallpaper")
@@ -256,11 +263,18 @@ func Apply(cfg *Config, s *scheme.Base16) error {
 	logln(cfg, "\nTriggering reloads...")
 	triggerReloads(cfg)
 
-	// 10. Touch ferritebar config (final step)
+	// 10. Touch ferritebar config
 	if err := touchFerritebarConfig(cfg); err != nil {
 		logf(cfg, "  [WARN] ferritebar config: %v\n", err)
 	} else {
 		logln(cfg, "  [OK] ferritebar config")
+	}
+
+	// 11. Restart ferritebar (same effect as Alt-k, then Alt-b in labwc)
+	if err := restartFerritebar(cfg); err != nil {
+		logf(cfg, "  [WARN] ferritebar restart: %v\n", err)
+	} else {
+		logln(cfg, "  [OK] ferritebar restart")
 	}
 
 	return nil
@@ -726,17 +740,13 @@ func updateGtkSettingsIni(cfg *Config, path string) error {
 }
 
 func applyOpenbox(cfg *Config, s *scheme.Base16) error {
-	// Write into the active Orchis variant's openbox-3/ subfolder so labwc's
-	// theme lookup (by GTK theme name) finds it. The non-active variant's
-	// themerc is left alone — it'll be refreshed the next time a scheme of
-	// that variant is applied. Both subdirs are bootstrapped at install
-	// time.
+	// LabWC resolves its Openbox-style decorations from the selected theme
+	// name. Keep that authority with Orchis, but generate a Base16-safe
+	// openbox-3/themerc under the selected Orchis variant.
 	themercPath := filepath.Join(cfg.OrchisDestDir, cfg.GtkThemeName, "openbox-3", "themerc")
-	themeDir := filepath.Dir(themercPath)
-	if !cfg.DryRun {
-		if err := os.MkdirAll(themeDir, 0755); err != nil {
-			return err
-		}
+	if cfg.DryRun {
+		logf(cfg, "  Would write openbox theme: %s\n", themercPath)
+		return nil
 	}
 
 	content, err := template.RenderString(openboxTemplate, s.ToMap())
@@ -784,18 +794,86 @@ func applyIconTheme(cfg *Config) error {
 	return nil
 }
 
-func applyWallpaper(cfg *Config) error {
+func applyWallpaper(cfg *Config, s *scheme.Base16) error {
+	wpPath := resolveWallpaperPath(cfg)
 	if cfg.DryRun {
-		logf(cfg, "  Would set wallpaper: %s\n", cfg.Wallpaper)
+		logf(cfg, "  Would read wallpaper source: %s\n", wpPath)
+		logf(cfg, "  Would render gowall theme: %s\n", cfg.GowallThemeJSON)
+		logf(cfg, "  Would convert wallpaper to: %s\n", cfg.WallpaperCurrent)
+		logf(cfg, "  Would run: awww img %s\n", cfg.WallpaperCurrent)
 		return nil
 	}
 
-	wpPath := filepath.Join(cfg.WallpaperDir, cfg.Wallpaper)
-	if err := run("awww", "img", wpPath); err != nil {
+	if _, err := os.Stat(wpPath); err != nil {
+		return fmt.Errorf("wallpaper source missing at %s: %w", wpPath, err)
+	}
+
+	themeJSON, err := renderGowallTheme(s)
+	if err != nil {
+		return err
+	}
+	if err := writeFile(cfg, cfg.GowallThemeJSON, themeJSON); err != nil {
+		return fmt.Errorf("gowall theme json: %w", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(cfg.WallpaperCurrent), 0755); err != nil {
+		return fmt.Errorf("mkdir wallpaper output: %w", err)
+	}
+	if err := cleanupGeneratedWallpaper(cfg); err != nil {
+		return err
+	}
+	if err := run("gowall", "convert", wpPath, "--output", cfg.WallpaperCurrent, "--theme", cfg.GowallThemeJSON, "--format", "png", "--yes"); err != nil {
+		return fmt.Errorf("gowall convert: %w", err)
+	}
+	if err := run("awww", "img", cfg.WallpaperCurrent); err != nil {
 		return fmt.Errorf("awww: %w", err)
 	}
 
 	return nil
+}
+
+func resolveWallpaperPath(cfg *Config) string {
+	if filepath.IsAbs(cfg.Wallpaper) || strings.ContainsRune(cfg.Wallpaper, os.PathSeparator) {
+		return cfg.Wallpaper
+	}
+	for _, dir := range WallpaperDirs() {
+		path := filepath.Join(dir, cfg.Wallpaper)
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+	}
+	return filepath.Join(cfg.WallpaperDir, cfg.Wallpaper)
+}
+
+func cleanupGeneratedWallpaper(cfg *Config) error {
+	if err := os.Remove(cfg.WallpaperCurrent); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("remove old generated wallpaper: %w", err)
+	}
+	return nil
+}
+
+func renderGowallTheme(s *scheme.Base16) (string, error) {
+	return template.RenderString(`{
+  "name": "{{scheme-name}}",
+  "colors": [
+    "#{{base00-hex}}",
+    "#{{base01-hex}}",
+    "#{{base02-hex}}",
+    "#{{base03-hex}}",
+    "#{{base04-hex}}",
+    "#{{base05-hex}}",
+    "#{{base06-hex}}",
+    "#{{base07-hex}}",
+    "#{{base08-hex}}",
+    "#{{base09-hex}}",
+    "#{{base0A-hex}}",
+    "#{{base0B-hex}}",
+    "#{{base0C-hex}}",
+    "#{{base0D-hex}}",
+    "#{{base0E-hex}}",
+    "#{{base0F-hex}}"
+  ]
+}
+`, s.ToMap())
 }
 
 func writeFile(cfg *Config, path, content string) error {
@@ -880,6 +958,25 @@ func touchFerritebarConfig(cfg *Config) error {
 		return fmt.Errorf("chtimes ferritebar config: %w", err)
 	}
 
+	return nil
+}
+
+func restartFerritebar(cfg *Config) error {
+	if cfg.DryRun {
+		logln(cfg, "  Would run: pkill ferritebar")
+		logln(cfg, "  Would run: ferritebar")
+		return nil
+	}
+
+	_ = run("pkill", "ferritebar")
+	time.Sleep(700 * time.Millisecond)
+
+	cmd := exec.Command("ferritebar")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("start ferritebar: %w", err)
+	}
 	return nil
 }
 

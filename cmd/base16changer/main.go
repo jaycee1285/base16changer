@@ -31,7 +31,7 @@ func main() {
 	flag.StringVar(&schemePath, "path", "", "Direct path to scheme YAML file")
 	flag.StringVar(&schemesDir, "schemes-dir", "", "Directory containing scheme YAML files")
 	flag.StringVar(&iconTheme, "icon", "", "Icon theme to apply")
-	flag.StringVar(&wallpaper, "wallpaper", "", "Wallpaper filename to apply (from ~/Pictures/walls)")
+	flag.StringVar(&wallpaper, "wallpaper", "", "Wallpaper filename or path to recolor and apply")
 	flag.BoolVar(&darkMode, "dark", false, "Use dark theme variant (Orchis-Dark-Compact)")
 	flag.BoolVar(&listFlag, "list", false, "List available schemes")
 	flag.BoolVar(&listIcons, "list-icons", false, "List available icon themes")
@@ -128,10 +128,9 @@ func runCLI(cfg *targets.Config, schemeName, schemePath string) {
 		os.Exit(1)
 	}
 
-	// Auto-derive Orchis variant from the scheme's variant unless -dark was
-	// passed explicitly. Without this, every apply uses Light regardless of
-	// scheme, which puts the openbox themerc in the wrong subfolder.
-	if !cfg.DarkMode && strings.EqualFold(strings.TrimSpace(s.Variant), "dark") {
+	// Auto-derive Orchis variant unless -dark was passed explicitly. Gogh
+	// .yml files often leave variant blank, so fall back to palette luminance.
+	if !cfg.DarkMode && (strings.EqualFold(strings.TrimSpace(s.Variant), "dark") || !s.IsLightVariant()) {
 		cfg.DarkMode = true
 	}
 
@@ -188,7 +187,7 @@ func listIconThemes() {
 
 func listWallpaperFiles() {
 	walls := targets.ScanWallpapers()
-	fmt.Printf("Available wallpapers in %s:\n\n", targets.WallpaperDir())
+	fmt.Printf("Available wallpapers in %s:\n\n", strings.Join(targets.WallpaperDirs(), ", "))
 	printColumns(walls, 2)
 	fmt.Printf("\nTotal: %d wallpapers\n", len(walls))
 }

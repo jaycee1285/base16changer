@@ -76,10 +76,11 @@ type applyDoneMsg struct{ err error }
 
 // Selections tracks what the user has chosen
 type Selections struct {
-	Scheme    string
-	DarkMode  bool
-	IconTheme string
-	Wallpaper string
+	Scheme     string
+	DarkMode   bool
+	ModeManual bool
+	IconTheme  string
+	Wallpaper  string
 }
 
 type Model struct {
@@ -193,6 +194,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "d":
 			m.selected.DarkMode = !m.selected.DarkMode
+			m.selected.ModeManual = true
 			if m.selected.DarkMode {
 				m.status = "Mode: Dark"
 			} else {
@@ -270,26 +272,9 @@ func rebuildList(l list.Model, items []string) list.Model {
 
 func applyCmd(cfg *targets.Config, sel Selections) tea.Cmd {
 	return func() tea.Msg {
-		// Find scheme path
-		var schemePath string
-		var err error
-		if cfg.SchemesDir != "" {
-			// Try both extensions
-			for _, ext := range []string{".yaml", ".yml"} {
-				path := cfg.SchemesDir + "/" + sel.Scheme + ext
-				if _, statErr := os.Stat(path); statErr == nil {
-					schemePath = path
-					break
-				}
-			}
-			if schemePath == "" {
-				schemePath = cfg.SchemesDir + "/" + sel.Scheme + ".yaml" // fallback
-			}
-		} else {
-			schemePath, err = targets.FindScheme(sel.Scheme)
-			if err != nil {
-				return applyDoneMsg{err: err}
-			}
+		schemePath, err := resolveSchemePath(cfg, sel.Scheme)
+		if err != nil {
+			return applyDoneMsg{err: err}
 		}
 
 		// Parse scheme
@@ -301,6 +286,9 @@ func applyCmd(cfg *targets.Config, sel Selections) tea.Cmd {
 		// Set optional selections
 		cfg.SelectedScheme = sel.Scheme
 		cfg.DarkMode = sel.DarkMode
+		if !sel.ModeManual {
+			cfg.DarkMode = !s.IsLightVariant()
+		}
 		cfg.IconTheme = sel.IconTheme
 		cfg.Wallpaper = sel.Wallpaper
 
@@ -308,6 +296,19 @@ func applyCmd(cfg *targets.Config, sel Selections) tea.Cmd {
 		err = targets.Apply(cfg, s)
 		return applyDoneMsg{err: err}
 	}
+}
+
+func resolveSchemePath(cfg *targets.Config, name string) (string, error) {
+	if cfg.SchemesDir != "" {
+		for _, ext := range []string{".yaml", ".yml"} {
+			path := cfg.SchemesDir + "/" + name + ext
+			if _, statErr := os.Stat(path); statErr == nil {
+				return path, nil
+			}
+		}
+		return cfg.SchemesDir + "/" + name + ".yaml", nil
+	}
+	return targets.FindScheme(name)
 }
 
 func (m Model) selectCurrentItem() Model {
@@ -323,7 +324,17 @@ func (m Model) selectCurrentItem() Model {
 	switch m.expanded {
 	case tabSchemes:
 		m.selected.Scheme = it.title
-		m.status = "Scheme: " + it.title
+		if schemePath, err := resolveSchemePath(m.cfg, it.title); err == nil {
+			if s, err := scheme.Parse(schemePath); err == nil {
+				m.selected.DarkMode = !s.IsLightVariant()
+				m.selected.ModeManual = false
+			}
+		}
+		mode := "Light"
+		if m.selected.DarkMode {
+			mode = "Dark"
+		}
+		m.status = "Scheme: " + it.title + " (" + mode + ")"
 	case tabIcons:
 		m.selected.IconTheme = it.title
 		m.status = "Icons: " + it.title

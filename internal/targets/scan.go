@@ -117,7 +117,16 @@ func IconDirs() []string {
 // WallpaperDir returns the wallpaper directory
 func WallpaperDir() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, "Pictures/walls")
+	return filepath.Join(home, "syncthing/walls")
+}
+
+// WallpaperDirs returns wallpaper directories in lookup order.
+func WallpaperDirs() []string {
+	home, _ := os.UserHomeDir()
+	return []string{
+		WallpaperDir(),
+		filepath.Join(home, "Pictures/walls"),
+	}
 }
 
 // ScanIconThemes returns available icon themes
@@ -163,22 +172,27 @@ func FindIconThemeDir(name string) (string, error) {
 
 // ScanWallpapers returns available wallpapers
 func ScanWallpapers() []string {
-	dir := WallpaperDir()
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return []string{}
-	}
-	out := []string{}
-	for _, e := range entries {
-		if e.IsDir() {
+	set := map[string]struct{}{}
+	for _, dir := range WallpaperDirs() {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
 			continue
 		}
-		name := e.Name()
-		ext := strings.ToLower(filepath.Ext(name))
-		switch ext {
-		case ".jpg", ".jpeg", ".png", ".webp":
-			out = append(out, name)
+		for _, e := range entries {
+			if e.IsDir() {
+				continue
+			}
+			name := e.Name()
+			ext := strings.ToLower(filepath.Ext(name))
+			switch ext {
+			case ".jpg", ".jpeg", ".png", ".webp":
+				set[name] = struct{}{}
+			}
 		}
+	}
+	out := make([]string, 0, len(set))
+	for name := range set {
+		out = append(out, name)
 	}
 	sort.Strings(out)
 	return out
